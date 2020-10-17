@@ -1,6 +1,6 @@
 #!/bin/bash
 if [[ -z "${AUR_BUILDER_CONFIG_FILE}" ]]; then
-  AUR_BUILDER_CONFIG_FILE="opt/aur-builder/aur-builder.conf"
+  AUR_BUILDER_CONFIG_FILE="/opt/aur-builder/aur-builder.conf"
 fi
 source ${AUR_BUILDER_CONFIG_FILE}
 
