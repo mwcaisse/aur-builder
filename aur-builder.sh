@@ -4,7 +4,6 @@ if [[ -z "${AUR_BUILDER_CONFIG_FILE}" ]]; then
 fi
 source ${AUR_BUILDER_CONFIG_FILE}
 
-echo "${AUR_BUILDER_IMAGE_TAG}"
 if [[ -z "${AUR_BUILDER_IMAGE_TAG}" ]]; then
   echo "AUR_BUILDER_IMAGE_TAG not set. Please set it in the configuration file '${AUR_BUILDER_CONFIG_FILE}'"
   exit 1
