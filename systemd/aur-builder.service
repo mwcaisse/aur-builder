@@ -1,0 +1,8 @@
+[Unit]
+Description=Service to run aur-builder
+Wants=aur-builder.timer
+
+[Service]
+Type=oneshot
+User=mitchell
+ExecStart=/usr/bin/aur-builder
