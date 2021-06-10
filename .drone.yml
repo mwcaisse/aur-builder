@@ -32,17 +32,8 @@ image_pull_secrets:
   - docker-auth-config
 
 trigger:
-  event:
-    include:
-      - push
-      - cron
   branch:
-    include:
-      - master
-  cron:
-    include:
-      - weekly
-
+    - master
 ---
 kind: secret
 name: gitlab-username
