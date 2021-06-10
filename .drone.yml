@@ -31,6 +31,15 @@ volumes:
 image_pull_secrets:
   - docker-auth-config
 
+trigger:
+  event:
+    - cron
+    - push
+  cron:
+    - weekly
+  branch:
+    - master
+
 ---
 kind: secret
 name: gitlab-username
