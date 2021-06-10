@@ -4,7 +4,7 @@ RUN pacman -Syyu --noconfirm
 RUN pacman -S --noconfirm pacman-contrib
 
 # Download and rank a mirror list by speed
-RUN curl -s "https://www.archlinux.org/mirrorlist/?country=US&protocol=http&protocol=https&ip_version=4&use_mirror_status=on" \
+RUN curl -s "https://archlinux.org/mirrorlist/?country=US&protocol=http&protocol=https&ip_version=4&use_mirror_status=on" \
  |  sed -e 's/^#Server/Server/' -e '/^#/d'  \
  | rankmirrors -n 5 - > /etc/pacman.d/mirrorlist
 
