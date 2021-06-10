@@ -10,7 +10,7 @@ RUN curl -s "https://www.archlinux.org/mirrorlist/?country=US&protocol=http&prot
 
 RUN pacman -Syyu --noconfirm
 
-RUN pacman -S base-devel base sudo git --noconfirm
+RUN pacman -S base-devel base sudo git signify --noconfirm
 
 # Install Aurutils dependencies
 RUN pacman -S diffstat expac jq pacutils wget devtools vifm bash-completion --noconfirm

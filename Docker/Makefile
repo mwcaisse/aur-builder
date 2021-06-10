@@ -1,7 +1,7 @@
 OWNER=mwcaisse
 GIT_REPO=application-images
 IMAGE_NAME=arch-aur-builder
-VERSION=1.1
+VERSION=1.2
 TAG=registry.gitlab.com/$(OWNER)/$(GIT_REPO)/$(IMAGE_NAME):$(VERSION)
 
 all: push
