@@ -37,7 +37,11 @@ trigger:
       - push
       - cron
   branch:
-    - master
+    include:
+      - master
+  cron:
+    include:
+      - weekly
 
 ---
 kind: secret
