@@ -33,7 +33,9 @@ image_pull_secrets:
 
 trigger:
   event:
-    - push
+    include:
+      - push
+      - cron
   branch:
     - master
 
