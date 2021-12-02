@@ -13,7 +13,7 @@ RUN pacman -Syyu --noconfirm
 RUN pacman -S base-devel base sudo git signify --noconfirm
 
 # Install Aurutils dependencies
-RUN pacman -S diffstat expac jq pacutils wget devtools vifm bash-completion --noconfirm
+RUN pacman -S expect diffstat jq pacutils wget devtools bash-completion --noconfirm
 # Build and install aurutils
 
 WORKDIR /tmp/pkg/aurutils
