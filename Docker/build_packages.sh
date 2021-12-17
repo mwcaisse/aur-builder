@@ -18,7 +18,7 @@ Server = file://${AUR_REPO_DIR}
 #repo-add "${REPO_DIR}/${AUR_REPO_NAME}.db.tar.xz"
 
 # Sync up the aur database
-pacman -Syu
+pacman -Syu --noconfirm
 
 chown -R build:build "${AUR_REPO_DIR}"
 

@@ -1,0 +1,56 @@
+kind: pipeline
+type: docker
+name: development
+
+steps:
+
+  - name: build-image
+    image: registry.gitlab.com/mwcaisse/drone-images/drone-docker:20.10.7
+    volumes:
+      - name: docker-socket
+        path: /var/run/docker.sock
+    settings:
+      username:
+        from_secret: gitlab-username
+      password:
+        from_secret: gitlab-password
+      repo: registry.gitlab.com/mwcaisse/application-images/arch-aur-builder
+      registry: registry.gitlab.com
+      dockerfile: Docker/Dockerfile
+      context: Docker/
+      pull_image: true
+      no_cache: true
+      tags:
+        - latest
+
+volumes:
+  - name: docker-socket
+    host:
+      path: /var/run/docker.sock
+
+image_pull_secrets:
+  - docker-auth-config
+
+trigger:
+  branch:
+    - master
+---
+kind: secret
+name: gitlab-username
+get:
+  path: drone/gitlab
+  name: username
+
+---
+kind: secret
+name: gitlab-password
+get:
+  path: drone/gitlab
+  name: access-token
+
+---
+kind: secret
+name: docker-auth-config
+get:
+  path: drone/docker
+  name: auth
