@@ -28,6 +28,10 @@ for arg in ${BASH_ARGV[*]} ; do
   PACKAGES_TO_INSTALL="${PACKAGES_TO_INSTALL}${arg}"
 done
 
+# Ensure we have the updated image first
+
+docker pull "${AUR_BUILDER_IMAGE_TAG}"
+
 docker run \
   --mount type=bind,source=${AUR_BUILDER_REPO_DIR},destination="/repo" \
   --env AUR_BUILDER_REPO_NAME="${AUR_BUILDER_REPO_NAME}" \
