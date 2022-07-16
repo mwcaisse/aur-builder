@@ -38,19 +38,19 @@ trigger:
 kind: secret
 name: gitlab-username
 get:
-  path: drone/gitlab
+  path: drone/data/gitlab
   name: username
 
 ---
 kind: secret
 name: gitlab-password
 get:
-  path: drone/gitlab
+  path: drone/data/gitlab
   name: access-token
 
 ---
 kind: secret
 name: docker-auth-config
 get:
-  path: drone/docker
+  path: drone/data/docker
   name: auth
