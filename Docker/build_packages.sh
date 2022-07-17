@@ -6,6 +6,10 @@ AUR_REPO_DIR="/repo"
 ## First let's update all of the packages, make sure everything is up to date
 pacman -Syyu --noconfirm
 
+# Import any keys for packages
+# TODO: For now just hardcode this key for testing
+gpg --recv-key 4E402EBF7C3C6A71
+
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "
 [${AUR_BUILDER_REPO_NAME}]
