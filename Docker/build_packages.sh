@@ -8,7 +8,7 @@ pacman -Syyu --noconfirm
 
 # Import any keys for packages
 # TODO: For now just hardcode this key for testing
-gpg --recv-key 4E402EBF7C3C6A71
+sudo -u build gpg --recv-key 4E402EBF7C3C6A71
 
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "
