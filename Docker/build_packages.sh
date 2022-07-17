@@ -7,8 +7,9 @@ AUR_REPO_DIR="/repo"
 pacman -Syyu --noconfirm
 
 # Import any keys for packages
-# TODO: For now just hardcode this key for testing
-sudo -u build gpg --recv-key 4E402EBF7C3C6A71
+for keyid in "${AUR_BUILDER_GPG_KEYS}"; do
+  sudo -u build gpg --recv-key "${keyid}"
+done
 
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "

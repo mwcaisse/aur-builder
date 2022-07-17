@@ -1,3 +1,5 @@
 AUR_BUILDER_IMAGE_TAG=registry.gitlab.com/mwcaisse/application-images/arch-aur-builder
 AUR_BUILDER_REPO_DIR=$(pwd)/tmp-repo
 AUR_BUILDER_REPO_NAME="mitchell_aur"
+# List of space seperated GPG keys to import
+AUR_BUILDER_GPG_KEYS=

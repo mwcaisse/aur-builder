@@ -36,4 +36,5 @@ docker run \
   --mount type=bind,source=${AUR_BUILDER_REPO_DIR},destination="/repo" \
   --env AUR_BUILDER_REPO_NAME="${AUR_BUILDER_REPO_NAME}" \
   --env AUR_BUILDER_NEW_PACKAGES="${PACKAGES_TO_INSTALL}" \
+  --env AUR_BUILDER_GPG_KEYS="${AUR_BUILDER_GPG_KEYS}" \
   "${AUR_BUILDER_IMAGE_TAG}"
