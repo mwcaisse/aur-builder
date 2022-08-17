@@ -8,6 +8,7 @@ pacman -Syyu --noconfirm
 
 # Import any keys for packages
 for keyid in "${AUR_BUILDER_GPG_KEYS}"; do
+  echo "Adding gpg key ${keyid}."
   sudo -u build gpg --recv-key "${keyid}"
 done
 
