@@ -6,11 +6,13 @@ AUR_REPO_DIR="/repo"
 ## First let's update all of the packages, make sure everything is up to date
 pacman -Syyu --noconfirm
 
-# Import any keys for packages
-for keyid in "${AUR_BUILDER_GPG_KEYS}"; do
-  echo "Adding gpg key ${keyid}."
-  sudo -u build gpg --recv-key "${keyid}"
-done
+if [[ -n "${AUR_BUILDER_GPG_KEYS}"]]; then
+  # Import any keys for packages
+  for keyid in "${AUR_BUILDER_GPG_KEYS}"; do
+    echo "Adding gpg key ${keyid}."
+    sudo -u build gpg --recv-key "${keyid}"
+  done
+fi
 
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "
