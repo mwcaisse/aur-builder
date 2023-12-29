@@ -1,0 +1,34 @@
+name: Build and Publish
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: 25 6 * * 3 # every wednesday at 6:25 am
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_publish:
+    name: Build and Publish image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+
+      - name: Build and Publish
+        uses: mwcaisse/gha-common/actions/build_and_push_image@master
+        with:
+          registry: registry.gitlab.com
+          username: ${{ vars.GITLAB_USERNAME }}
+          password: ${{ secrets.GITLAB_TOKEN }}
+          tags: |
+            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:latest
+            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:${{ github.sha }}
+          file: Docker/Dockerfile
+          context: Docker/
+          no-cache: true
+
+
