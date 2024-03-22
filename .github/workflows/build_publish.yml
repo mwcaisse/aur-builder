@@ -6,7 +6,7 @@ on:
   schedule:
     - cron: 25 6 * * 3 # every wednesday at 6:25 am
   workflow_dispatch:
-  
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true

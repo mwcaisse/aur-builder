@@ -1,0 +1,8 @@
+[Unit]
+Description=Clean up old packages in aur repository
+Wants=aur-cleanup.timer
+
+[Service]
+Type=oneshot
+User=mitchell
+ExecStart=/usr/bin/aur-cleaner
