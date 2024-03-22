@@ -1,5 +1,5 @@
 [Unit]
-Description=Run aur-builder every day at 3am
+Description=Run aur-cleaner every day at 3am
 
 [Timer]
 OnCalendar=*-*-* 3:00:00
