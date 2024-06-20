@@ -1,5 +1,11 @@
 FROM archlinux:latest
 
+# Enable multilib
+RUN echo -e "\
+[multilib] \n\
+Include = /etc/pacman.d/mirrorlist \n\
+" >> /etc/pacman.conf
+
 RUN pacman -Syyu --noconfirm
 RUN pacman -S --noconfirm pacman-contrib
 
