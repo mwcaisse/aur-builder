@@ -7,12 +7,14 @@ AUR_REPO_DIR="/repo"
 pacman -Syyu --noconfirm
 
 if [[ -n "${AUR_BUILDER_GPG_KEYS}" ]]; then
+  AUR_BUILDER_GPG_KEYS_LIST=($AUR_BUILDER_GPG_KEYS)
   # Import any keys for packages
-  for keyid in "${AUR_BUILDER_GPG_KEYS}"; do
+  for keyid in "${AUR_BUILDER_GPG_KEYS_LIST[@]}"; do
     echo "Adding gpg key ${keyid}."
     sudo -u build gpg --recv-key "${keyid}"
   done
 fi
+
 
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "
