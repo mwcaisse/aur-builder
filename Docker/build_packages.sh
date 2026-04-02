@@ -64,7 +64,7 @@ if [[ -z "${AUR_BUILDER_NEW_PACKAGES}" ]]; then
   # If no new packages are provided we just want to update, so pass the -u command
   SYNC_ARGS+=("-u")
 elif [[ "${AUR_BUILDER_NEW_PACKAGES}" == "rebuild" ]]; then
-  SYNC_ARGS+=("-o" "--rebuild-all")
+  SYNC_ARGS+=("--rebuild-all")
 else
   # If new packages are given, then we want to install them. Parse them from ';' seperated format into an array
   IFS=';' read -r -a SYNC_ARGS <<< "${AUR_BUILDER_NEW_PACKAGES}"
