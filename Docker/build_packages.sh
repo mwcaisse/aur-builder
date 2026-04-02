@@ -41,16 +41,26 @@ pushd working-dir
 export EDITOR="tee -a"
 echo "build ALL=(ALL) NOPASSWD: ALL" | visudo
 
-SYNC_ARGS=""
+SYNC_ARGS=()
+
+if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
+  echo "Signing packages enabled. Configuring package signing"
+  SYNC_ARGS+=("--sign")
+
+  # Import the private key
+  sudo -u build gpg2 --import "${AUR_BUILDER_GPG_KEY_PATH}"
+
+  # Set the key id in makepkg.conf
+  echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
+fi
 
 ## Lets build yay and shutter and put them into aur-repo directory
 if [[ -z "${AUR_BUILDER_NEW_PACKAGES}" ]]; then
   # If no new packages are provided we just want to update, so pass the -u command
-  SYNC_ARGS=("-u")
+  SYNC_ARGS+=("-u")
 else
   # If new packages are given, then we want to install them. Parse them from ';' seperated format into an array
   IFS=';' read -r -a SYNC_ARGS <<< "${AUR_BUILDER_NEW_PACKAGES}"
-
 fi
 
 sudo -u build aur sync --noconfirm --noview ${SYNC_ARGS[@]}

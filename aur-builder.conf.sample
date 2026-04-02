@@ -3,3 +3,8 @@ AUR_BUILDER_REPO_DIR=$(pwd)/tmp-repo
 AUR_BUILDER_REPO_NAME="mitchell_aur"
 # List of space seperated GPG keys to import
 AUR_BUILDER_GPG_KEYS=
+
+# Package Signing Configuration
+AUR_BUILDER_SIGN_PACKAGES=true
+AUR_BUILDER_GPG_KEY_PATH=""
+AUR_BUILDER_GPG_KEY_ID=""
