@@ -35,6 +35,7 @@ docker pull "${AUR_BUILDER_IMAGE_TAG}"
 docker run \
   --mount type=bind,source=${AUR_BUILDER_REPO_DIR},destination="/repo" \
   --mount type=bind,source=${AUR_BUILDER_GPG_KEY_PATH},destination="/aur-builder-keys/signing.key" \
+  --mount type=bind,source=${AUR_BUILDER_GPG_PUBLIC_KEY_PATH},destination="/aur-builder-keys/signing.pub" \
   --env AUR_BUILDER_REPO_NAME="${AUR_BUILDER_REPO_NAME}" \
   --env AUR_BUILDER_NEW_PACKAGES="${PACKAGES_TO_INSTALL}" \
   --env AUR_BUILDER_GPG_KEYS="${AUR_BUILDER_GPG_KEYS}" \

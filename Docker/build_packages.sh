@@ -50,6 +50,9 @@ if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
   # Import the private key
   sudo -u build gpg2 --import "/aur-builder-keys/signing.key"
 
+  # Tell pacman about the signing key
+  pacman-key --add "/aur-builder-keys/signing.pub"
+
   # Set the key id in makepkg.conf
   echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
 fi
