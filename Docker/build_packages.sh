@@ -15,6 +15,19 @@ if [[ -n "${AUR_BUILDER_GPG_KEYS}" ]]; then
   done
 fi
 
+if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
+  echo "Signing packages enabled. Configuring package signing"
+
+  # Import the private key
+  sudo -u build gpg --import "/aur-builder-keys/signing.key"
+
+  # Tell pacman about the signing key
+  pacman-key --add "/aur-builder-keys/signing.pub"
+
+  # Set the key id in makepkg.conf
+  echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
+fi
+
 
 ## We aren't signing the packages yet, so allow packages without signatures
 echo "
@@ -44,20 +57,10 @@ echo "build ALL=(ALL) NOPASSWD: ALL" | visudo
 SYNC_ARGS=()
 
 if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
-  echo "Signing packages enabled. Configuring package signing"
   SYNC_ARGS+=("--sign")
-
-  # Import the private key
-  sudo -u build gpg2 --import "/aur-builder-keys/signing.key"
-
-  # Tell pacman about the signing key
-  pacman-key --add "/aur-builder-keys/signing.pub"
-
-  # Set the key id in makepkg.conf
-  echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
 fi
 
-## Lets build yay and shutter and put them into aur-repo directory
+
 if [[ -z "${AUR_BUILDER_NEW_PACKAGES}" ]]; then
   # If no new packages are provided we just want to update, so pass the -u command
   SYNC_ARGS+=("-u")
