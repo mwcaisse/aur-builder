@@ -48,7 +48,7 @@ if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
   SYNC_ARGS+=("--sign")
 
   # Import the private key
-  sudo -u build gpg2 --import "${AUR_BUILDER_GPG_KEY_PATH}"
+  sudo -u build gpg2 --import "/aur-builder-keys/signing.key"
 
   # Set the key id in makepkg.conf
   echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
