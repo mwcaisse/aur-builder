@@ -1,4 +1,5 @@
 #!/bin/bash
+
 if [[ -z "${AUR_BUILDER_CONFIG_FILE}" ]]; then
   AUR_BUILDER_CONFIG_FILE="/opt/aur-builder/aur-builder.conf"
 fi
@@ -32,13 +33,13 @@ done
 docker pull "${AUR_BUILDER_IMAGE_TAG}"
 
 DOCKER_ARGS=(
-  "--mount type=bind,source=${AUR_BUILDER_REPO_DIR},destination=/repo"
-  "--env AUR_BUILDER_REPO_NAME=${AUR_BUILDER_REPO_NAME}"
-  "--env AUR_BUILDER_NEW_PACKAGES=${PACKAGES_TO_INSTALL}"
-  "--env AUR_BUILDER_GPG_KEYS=${AUR_BUILDER_GPG_KEYS}"
-  "--env AUR_BUILDER_SIGN_PACKAGES=${AUR_BUILDER_SIGN_PACKAGES}"
-  "--env AUR_BUILDER_GPG_KEY_PATH=${AUR_BUILDER_GPG_KEY_PATH}"
-  "--env AUR_BUILDER_GPG_KEY_ID=${AUR_BUILDER_GPG_KEY_ID}"
+  "--mount type=bind,source=\"${AUR_BUILDER_REPO_DIR}\",destination=\"/repo\""
+  "--env AUR_BUILDER_REPO_NAME=\"${AUR_BUILDER_REPO_NAME}\""
+  "--env AUR_BUILDER_NEW_PACKAGES=\"${PACKAGES_TO_INSTALL}\""
+  "--env AUR_BUILDER_GPG_KEYS=\"${AUR_BUILDER_GPG_KEYS}\""
+  "--env AUR_BUILDER_SIGN_PACKAGES=\"${AUR_BUILDER_SIGN_PACKAGES}\""
+  "--env AUR_BUILDER_GPG_KEY_PATH=\"${AUR_BUILDER_GPG_KEY_PATH}\""
+  "--env AUR_BUILDER_GPG_KEY_ID=\"${AUR_BUILDER_GPG_KEY_ID}\""
 )
 
 if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
