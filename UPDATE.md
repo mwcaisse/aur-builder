@@ -10,3 +10,8 @@
 - Remove orphaned
   - Remove any packages from the repository that are no longer part of the AUR. Packages can be moved from AUR to normal repositories.
   - This will clean up those packages.
+- Option to create a new repository.
+  - Creates an initial repository (Right now this is a manual step via repo-add) 
+- A better way to handle unknown keys when building
+- Ability to run a command directly in the docker image
+  - Either to test something out, or perform something that isn't supported by the CLI. 
