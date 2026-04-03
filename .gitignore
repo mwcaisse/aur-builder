@@ -2,6 +2,8 @@ tmp-repo/
 .idea/
 keys/
 
+config.toml
+
 # Added by cargo
 
 /target

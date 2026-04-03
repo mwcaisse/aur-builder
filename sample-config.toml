@@ -1,0 +1,19 @@
+# Additional maintainer keys to trust before building any packages
+additional_trusted_keys = []
+
+[image]
+name = "registry.gitlab.com/mwcaisse/application-images/arch-aur-builder"
+tag = "latest"
+
+[repository]
+name = ""
+path = ""
+
+# TODO: Make this a bit better?
+#   Do we need both the public + private key? Or will just private suffice?
+#   Do we need to have the key id provided separately, or can we derive it from the key itself?
+[signing]
+enabled = false
+key_path = ""
+public_key_path = ""
+key_id = ""
