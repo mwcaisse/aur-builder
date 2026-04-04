@@ -1,9 +1,26 @@
 use crate::config;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
+
+pub fn run_add_packages(config: config::Config, packages: &[&str]) {
+    println!("Adding the following packages: {:?}", packages);
+
+    let command_status = run_docker_image(config, Option::from(packages));
+
+    println!("Finished adding packages! with status: {}", command_status);
+}
 
 pub fn run_update(config: config::Config) {
     println!("Performing update on all packages!");
 
+    let command_status = run_docker_image(config, None);
+
+    println!(
+        "Finished updating all packages! with status: {}",
+        command_status
+    );
+}
+
+fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitStatus {
     let docker_image = format!("{}:{}", config.image.name, config.image.tag);
 
     let pull_command = Command::new("docker")
@@ -26,7 +43,13 @@ pub fn run_update(config: config::Config) {
         "AUR_BUILDER_REPO_NAME",
         &config.repository.name,
     );
-    add_env_arg(&mut update_command, "AUR_BUILDER_NEW_PACKAGES", "");
+
+    let space_separated_packages = packages.map_or(String::new(), |packages| packages.join(" "));
+    add_env_arg(
+        &mut update_command,
+        "AUR_BUILDER_NEW_PACKAGES",
+        &space_separated_packages,
+    );
     add_env_arg(&mut update_command, "AUR_BUILDER_GPG_KEYS", &trusted_keys);
     add_env_arg(
         &mut update_command,
@@ -55,15 +78,10 @@ pub fn run_update(config: config::Config) {
         );
     }
 
-    let command_status = update_command
+    update_command
         .arg(&docker_image)
         .status()
-        .expect("Failed to update packages :(");
-
-    println!(
-        "Finished updating all packages! with status: {}",
-        command_status
-    );
+        .expect("Failed to update packages :(")
 }
 
 fn add_env_arg(command: &mut Command, name: &str, value: &str) {

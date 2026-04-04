@@ -1,9 +1,9 @@
-mod config;
 mod actions;
+mod config;
 
+use clap::{arg, command, value_parser, Command};
 use std::path::PathBuf;
 use std::process::exit;
-use clap::{Command, command, arg, value_parser};
 
 fn main() {
     let default_config_path: String = "/etc/aur-builder/config.yaml".to_string();
@@ -52,7 +52,6 @@ fn main() {
         )
         .get_matches();
 
-
     // Check if a config file path was provided, otherwise use the default
     let config_path = matches
         .get_one::<PathBuf>("config")
@@ -66,27 +65,24 @@ fn main() {
     println!("Loaded up config!");
 
     println!("Using image: {}:{}", config.image.name, config.image.tag);
-    println!("Using repository {} at {}", config.repository.name, config.repository.path);
+    println!(
+        "Using repository {} at {}",
+        config.repository.name, config.repository.path
+    );
     println!("With image signing: {}", config.signing.enabled);
 
     if let Some(matches) = matches.subcommand_matches("add") {
         if let Some(names) = matches.get_many::<String>("PACKAGE") {
-            let string_names = names.into_iter().map(String::as_str).collect::<Vec<_>>().join(", ");
-            println!("Adding the following packages: [{}]", string_names);
-        }
-        else {
+            let package_names = names.map(String::as_str).collect::<Vec<_>>();
+            actions::run_add_packages(config, &package_names);
+        } else {
             println!("Must specify at least one package to add!");
             exit(1);
         }
-    }
-    else if let Some(_matches) = matches.subcommand_matches("update") {
+    } else if let Some(_matches) = matches.subcommand_matches("update") {
         actions::run_update(config);
-    }
-    else {
+    } else {
         println!("Currently not implemented!");
         exit(1);
     }
-
 }
-
-
