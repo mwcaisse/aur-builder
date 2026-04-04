@@ -42,6 +42,13 @@ fn main() {
             Command::new("update")
                 .about("Updates the packages that have new versions")
         )
+        .subcommand(
+            Command::new("clean")
+                .about("Removes old versions of the package keeping at most n latest versions")
+                .arg(
+                    arg!(-n <NUM> "Number of versions of a package to keep.").default_value("2").long("number-to-keep")
+                )
+        )
         .get_matches();
 
 
