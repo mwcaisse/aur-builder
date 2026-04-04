@@ -1,4 +1,5 @@
 mod config;
+mod actions;
 
 use std::path::PathBuf;
 use std::process::exit;
@@ -79,7 +80,7 @@ fn main() {
         }
     }
     else if let Some(_matches) = matches.subcommand_matches("update") {
-        println!("Performing update on all packages!");
+        actions::run_update(config);
     }
     else {
         println!("Currently not implemented!");
@@ -87,3 +88,5 @@ fn main() {
     }
 
 }
+
+
