@@ -23,6 +23,31 @@ pub fn run_clean(config: config::Config, to_keep: u32) {
     );
 }
 
+pub fn run_create_repo(config: &config::Config) {
+    println!("Creating repository at path: {}", config.repository.path);
+
+    // TODO: Should make sure that the parent directories in `repo_path` exist before calling `repo-add`
+    let ref repo_path = create_repository_file_path(config);
+
+    let mut command = Command::new("repo-add");
+
+    // if signing is enabled, pass sign flag + key flag
+    if config.signing.enabled {
+        command.arg("-s");
+        command.arg("-k");
+        command.arg(config.signing.key_id.clone().unwrap());
+    }
+
+    command.arg(repo_path);
+
+    let status = command.status().expect("Failed to create repository :(");
+
+    println!(
+        "Finished creating repository {}! with status: {}",
+        repo_path, status
+    );
+}
+
 // TODO: Should probably borrow config in the other functions in here as well
 pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     println!("Removing the following packages: {:?}", packages);
@@ -39,7 +64,6 @@ pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     }
 
     let repo_path = create_repository_file_path(config);
-    println!("Using repo path: {}", repo_path);
     command.arg(repo_path);
     command.args(packages);
 

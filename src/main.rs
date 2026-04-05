@@ -93,6 +93,8 @@ fn main() {
             println!("Must specify at least one package to remove!");
             exit(1);
         }
+    } else if let Some(_matches) = matches.subcommand_matches("create") {
+        actions::run_create_repo(&config);
     } else if let Some(_matches) = matches.subcommand_matches("update") {
         actions::run_update(config);
     } else if let Some(_matches) = matches.subcommand_matches("rebuild") {
