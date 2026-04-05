@@ -30,6 +30,9 @@ fn main() {
         .subcommand(
             Command::new("remove")
                 .about("Removes the given package(s) from the AUR repo")
+                .arg(
+                    arg!([PACKAGE] ... "Package(s) to remove from the repository").num_args(1..)
+                )
         )
         .subcommand(
             Command::new("remove-orphaned")
@@ -80,6 +83,14 @@ fn main() {
             actions::run_add_packages(config, &package_names);
         } else {
             println!("Must specify at least one package to add!");
+            exit(1);
+        }
+    } else if let Some(matches) = matches.subcommand_matches("remove") {
+        if let Some(names) = matches.get_many::<String>("PACKAGE") {
+            let package_names = names.map(String::as_str).collect::<Vec<_>>();
+            actions::run_remove_packages(&config, &package_names);
+        } else {
+            println!("Must specify at least one package to remove!");
             exit(1);
         }
     } else if let Some(_matches) = matches.subcommand_matches("update") {

@@ -1,4 +1,5 @@
 use crate::config;
+use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
 pub fn run_clean(config: config::Config, to_keep: u32) {
@@ -20,6 +21,39 @@ pub fn run_clean(config: config::Config, to_keep: u32) {
         "Finished cleaning up old versions of packages! with status: {}",
         clean_status
     );
+}
+
+// TODO: Should probably borrow config in the other functions in here as well
+pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
+    println!("Removing the following packages: {:?}", packages);
+
+    let mut command = Command::new("repo-remove");
+
+    command.arg("--remove");
+
+    // if signing is enabled, pass sign flag + key flag
+    if config.signing.enabled {
+        command.arg("-s");
+        command.arg("-k");
+        command.arg(config.signing.key_id.clone().unwrap());
+    }
+
+    let repo_path = create_repository_file_path(config);
+    println!("Using repo path: {}", repo_path);
+    command.arg(repo_path);
+    command.args(packages);
+
+    let status = command.status().expect("Failed to remove packages :(");
+
+    println!("Finished removing packages! with status: {}", status);
+}
+
+fn create_repository_file_path(config: &config::Config) -> String {
+    let mut path = PathBuf::from(config.repository.path.clone());
+    // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
+    path.push(format!("{}.db.tar.xz", config.repository.name));
+
+    return path.to_string_lossy().to_string();
 }
 
 pub fn run_add_packages(config: config::Config, packages: &[&str]) {
