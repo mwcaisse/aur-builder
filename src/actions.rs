@@ -1,6 +1,27 @@
 use crate::config;
 use std::process::{Command, ExitStatus};
 
+pub fn run_clean(config: config::Config, to_keep: u32) {
+    println!(
+        "Cleaning up old versions of packages! Keeping at most {} versions",
+        to_keep
+    );
+
+    let clean_status = Command::new("paccache")
+        .arg("-rv")
+        .arg("-c")
+        .arg(&config.repository.path)
+        .arg("-k")
+        .arg(to_keep.to_string())
+        .status()
+        .expect("Failed to clean up old versions of packages :(");
+
+    println!(
+        "Finished cleaning up old versions of packages! with status: {}",
+        clean_status
+    );
+}
+
 pub fn run_add_packages(config: config::Config, packages: &[&str]) {
     println!("Adding the following packages: {:?}", packages);
 

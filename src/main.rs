@@ -47,7 +47,10 @@ fn main() {
             Command::new("clean")
                 .about("Removes old versions of the package keeping at most n latest versions")
                 .arg(
-                    arg!(-n <NUM> "Number of versions of a package to keep.").default_value("2").long("number-to-keep")
+                    arg!(-n <NUM> "Number of versions of a package to keep.")
+                        .value_parser(value_parser!(u32))
+                        .default_value("2")
+                        .long("number-to-keep")
                 )
         )
         .get_matches();
@@ -83,6 +86,9 @@ fn main() {
         actions::run_update(config);
     } else if let Some(_matches) = matches.subcommand_matches("rebuild") {
         actions::run_rebuild_all(config);
+    } else if let Some(clean_matches) = matches.subcommand_matches("clean") {
+        let to_keep = clean_matches.get_one::<u32>("NUM").copied().unwrap_or(2);
+        actions::run_clean(config, to_keep);
     } else {
         println!("Currently not implemented!");
         exit(1);
