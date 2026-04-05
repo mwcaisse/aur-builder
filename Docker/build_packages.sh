@@ -25,7 +25,9 @@ if [[ -n "${AUR_BUILDER_SIGN_PACKAGES}" ]]; then
   pacman-key --add "/aur-builder-keys/signing.pub"
 
   # Set the key id in makepkg.conf
-  echo "GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\""
+  echo "
+  GPGKEY=\"${AUR_BUILDER_GPG_KEY_ID}\"
+  " >> /etc/makepkg.conf
 fi
 
 
@@ -67,7 +69,9 @@ elif [[ "${AUR_BUILDER_NEW_PACKAGES}" == "rebuild" ]]; then
   SYNC_ARGS+=("--rebuild-all")
 else
   # If new packages are given, then we want to install them. Parse them from ';' seperated format into an array
-  IFS=';' read -r -a SYNC_ARGS <<< "${AUR_BUILDER_NEW_PACKAGES}"
+  SYNC_PACKAGES=()
+  IFS=';' read -r -a SYNC_PACKAGES <<< "${AUR_BUILDER_NEW_PACKAGES}"
+  SYNC_ARGS+=("${SYNC_PACKAGES[@]}")
 fi
 
 sudo -u build aur sync --noconfirm --noview ${SYNC_ARGS[@]}

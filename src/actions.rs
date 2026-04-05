@@ -23,13 +23,16 @@ pub fn run_update(config: config::Config) {
 fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitStatus {
     let docker_image = format!("{}:{}", config.image.name, config.image.tag);
 
-    let pull_command = Command::new("docker")
-        .arg("pull")
-        .arg(&docker_image)
-        .status()
-        .expect("Failed to update image :(");
+    // if we are configured to always pull, pull the image before we run it
+    if config.image.always_pull {
+        let pull_command = Command::new("docker")
+            .arg("pull")
+            .arg(&docker_image)
+            .status()
+            .expect("Failed to update image :(");
 
-    println!("Pulled image! with status: {}", pull_command);
+        println!("Pulled image! with status: {}", pull_command);
+    }
 
     // Now we shall run the docker image itself
 
@@ -56,6 +59,8 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
         "AUR_BUILDER_SIGN_PACKAGES",
         &config.signing.enabled.to_string(),
     );
+
+    println!("Signing enabled!: {}", &config.signing.enabled.to_string());
 
     if config.signing.enabled {
         // add the public and private key mounts
