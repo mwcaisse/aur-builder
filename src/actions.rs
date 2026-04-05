@@ -72,6 +72,25 @@ pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     println!("Finished removing packages! with status: {}", status);
 }
 
+pub fn run_remove_orphans(config: &config::Config) {
+
+    /*
+
+       - We'll need to get a list of all current packages in the AUR
+       - We'll need to get a list of all packages in the local repository
+
+        To get all current AUR packages:
+            https://wiki.archlinux.org/title/Aurweb_RPC_interface
+            This file (https://aur.archlinux.org/packages.gz) contains a list of all packages in the AUR, seperated by line break
+
+        To get all packages in the local repository:
+            The local repository file, is an archive file. Inside there is folder for each package.
+            The folder for the package has a `desc` file inside, which contains metadata about the package.
+            Including the package name.
+
+    */
+}
+
 fn create_repository_file_path(config: &config::Config) -> String {
     let mut path = PathBuf::from(config.repository.path.clone());
     // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)

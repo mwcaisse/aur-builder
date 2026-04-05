@@ -1,5 +1,6 @@
 mod actions;
 mod config;
+mod package_parser;
 
 use clap::{arg, command, value_parser, Command};
 use std::path::PathBuf;
@@ -25,7 +26,6 @@ fn main() {
                 .arg(
                     arg!([PACKAGE] ... "Package(s) to add to the repository").num_args(1..)
                 )
-
         )
         .subcommand(
             Command::new("remove")
