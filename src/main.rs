@@ -81,6 +81,8 @@ fn main() {
         }
     } else if let Some(_matches) = matches.subcommand_matches("update") {
         actions::run_update(config);
+    } else if let Some(_matches) = matches.subcommand_matches("rebuild") {
+        actions::run_rebuild_all(config);
     } else {
         println!("Currently not implemented!");
         exit(1);

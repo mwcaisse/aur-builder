@@ -20,6 +20,18 @@ pub fn run_update(config: config::Config) {
     );
 }
 
+pub fn run_rebuild_all(config: config::Config) {
+    println!("Performing rebuild on all packages!");
+
+    // Right now to re-build all packages, we pass a package with the name "rebuild" to the docker image
+    let command_status = run_docker_image(config, Option::from(&["rebuild"][..]));
+
+    println!(
+        "Finished rebuilding all packages! with status: {}",
+        command_status
+    );
+}
+
 fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitStatus {
     let docker_image = format!("{}:{}", config.image.name, config.image.tag);
 
