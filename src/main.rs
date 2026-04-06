@@ -99,6 +99,8 @@ fn main() {
         actions::run_update(config);
     } else if let Some(_matches) = matches.subcommand_matches("rebuild") {
         actions::run_rebuild_all(config);
+    } else if let Some(_matches) = matches.subcommand_matches("remove-orphaned") {
+        actions::run_remove_orphans(&config);
     } else if let Some(clean_matches) = matches.subcommand_matches("clean") {
         let to_keep = clean_matches.get_one::<u32>("NUM").copied().unwrap_or(2);
         actions::run_clean(config, to_keep);

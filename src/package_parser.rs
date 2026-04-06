@@ -1,15 +1,48 @@
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
+use tar::Archive;
+use xz::read::XzDecoder;
 
 /// Captures metadata on a package
 ///     Currently we are only capturing name, version, and file name.
-struct Package {
-    name: String,
-    version: String,
-    file_name: String,
+pub struct Package {
+    pub name: String,
+    pub version: String,
+    pub file_name: String,
 }
 
+/// Gets a list of packages from the Arch database in the given file
+/// Assumes that the database in in tar.xz format
+/// TODO: Add support for other archive formats / determining format of the database file
+///     Arch supports any archive format that is supported by `libarchive`
+pub fn get_packages_from_arch_database(path_to_database: &str) {
+    //lets do our file operations
+    let file = File::open(path_to_database).unwrap();
+    let tar_archive = XzDecoder::new(file);
+    let mut archive = Archive::new(tar_archive);
+
+    let mut pacakges: Vec<Package> = Vec::new();
+
+    for file in archive.entries().unwrap() {
+        let mut file = file.unwrap();
+
+        if file.header().entry_type().is_file()
+            && file.header().path().unwrap().file_name().unwrap() == "desc"
+        {
+            let mut file_contents = String::new();
+            file.read_to_string(&mut file_contents).unwrap();
+            let package_results = parse_package_from_desc_contents(&file_contents).unwrap();
+            pacakges.push(package_results);
+        }
+    }
+
+    println!("Found the following packages: ");
+    for package in pacakges {
+        println!("{} - {}", package.name, package.version)
+    }
+}
 /// Parses package metadata information from the contents of a package's `desc` file.
-///
 fn parse_package_from_desc_contents(contents: &str) -> Result<Package, &str> {
     let fields = parse_fields_from_desc_file(contents).expect("Failed to parse package desc file");
 

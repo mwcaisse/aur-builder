@@ -1,4 +1,4 @@
-use crate::config;
+use crate::{config, package_parser};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
@@ -73,7 +73,6 @@ pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
 }
 
 pub fn run_remove_orphans(config: &config::Config) {
-
     /*
 
        - We'll need to get a list of all current packages in the AUR
@@ -89,6 +88,10 @@ pub fn run_remove_orphans(config: &config::Config) {
             Including the package name.
 
     */
+
+    //TODO: for now we are just going to interate our files
+    let repo_path = create_repository_file_path(config);
+    package_parser::get_packages_from_arch_database(&repo_path);
 }
 
 fn create_repository_file_path(config: &config::Config) -> String {
