@@ -71,7 +71,7 @@ fn parse_fields_from_desc_file(contents: &str) -> Result<HashMap<String, Vec<Str
 
 #[cfg(test)]
 mod tests {
-    use crate::package_parser::parse_fields_from_desc_file;
+    use crate::package_parser::*;
 
     const SIMPLE_DESC_CONTENTS: &str = "%FILENAME%
 bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst
@@ -151,5 +151,19 @@ yarn";
     fn test_parse_fields_from_desc_files_no_values() {
         let results = parse_fields_from_desc_file(ERROR_VALUE_WITHOUT_FIELD_NAME_CONTENT);
         assert!(!results.is_ok());
+    }
+
+    #[test]
+    fn test_parse_package_from_desc_contents() {
+        let results = parse_package_from_desc_contents(SIMPLE_DESC_CONTENTS);
+        assert!(results.is_ok());
+
+        let package = results.unwrap();
+        assert_eq!(package.name, "bitwarden-bin");
+        assert_eq!(package.version, "2026.3.1-1");
+        assert_eq!(
+            package.file_name,
+            "bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst"
+        );
     }
 }
