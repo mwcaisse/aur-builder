@@ -89,9 +89,20 @@ pub fn run_remove_orphans(config: &config::Config) {
 
     */
 
-    //TODO: for now we are just going to interate our files
     let repo_path = create_repository_file_path(config);
-    package_parser::get_packages_from_arch_database(&repo_path);
+    let our_packages = package_parser::get_packages_from_arch_database(&repo_path);
+    let aur_packages = package_parser::get_all_aur_packages();
+
+    let mut orphaned_packages: Vec<String> = Vec::new();
+    for package in our_packages {
+        let package_name = package.name.as_str();
+        // Ignore package names that end in `-debug` as they are sometimes created as part of the build of the normal package
+        // TODO: need to figure out how to differentiate these from actual packages with -debug at the end
+        if !aur_packages.contains(package_name) && !package_name.ends_with("-debug") {
+            println!("Package {} is orphaned", package.name);
+            orphaned_packages.push(package.name);
+        }
+    }
 }
 
 fn create_repository_file_path(config: &config::Config) -> String {

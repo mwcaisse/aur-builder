@@ -1,4 +1,5 @@
-use std::collections::HashMap;
+use flate2::read::GzDecoder;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use tar::Archive;
@@ -16,13 +17,13 @@ pub struct Package {
 /// Assumes that the database in in tar.xz format
 /// TODO: Add support for other archive formats / determining format of the database file
 ///     Arch supports any archive format that is supported by `libarchive`
-pub fn get_packages_from_arch_database(path_to_database: &str) {
+pub fn get_packages_from_arch_database(path_to_database: &str) -> Vec<Package> {
     //lets do our file operations
     let file = File::open(path_to_database).unwrap();
     let tar_archive = XzDecoder::new(file);
     let mut archive = Archive::new(tar_archive);
 
-    let mut pacakges: Vec<Package> = Vec::new();
+    let mut packages: Vec<Package> = Vec::new();
 
     for file in archive.entries().unwrap() {
         let mut file = file.unwrap();
@@ -33,15 +34,29 @@ pub fn get_packages_from_arch_database(path_to_database: &str) {
             let mut file_contents = String::new();
             file.read_to_string(&mut file_contents).unwrap();
             let package_results = parse_package_from_desc_contents(&file_contents).unwrap();
-            pacakges.push(package_results);
+            packages.push(package_results);
         }
     }
 
-    println!("Found the following packages: ");
-    for package in pacakges {
-        println!("{} - {}", package.name, package.version)
-    }
+    packages
 }
+
+pub fn get_all_aur_packages() -> HashSet<String> {
+    // TODO: so many unwraps here, should probably do some error handling
+    let resp = reqwest::blocking::get("https://aur.archlinux.org/packages.gz").unwrap();
+
+    let mut gz = GzDecoder::new(resp);
+    let mut contents = String::new();
+    gz.read_to_string(&mut contents).unwrap();
+
+    let mut aur_packages: HashSet<String> = HashSet::new();
+    for line in contents.lines() {
+        aur_packages.insert(line.to_string());
+    }
+
+    aur_packages
+}
+
 /// Parses package metadata information from the contents of a package's `desc` file.
 fn parse_package_from_desc_contents(contents: &str) -> Result<Package, &str> {
     let fields = parse_fields_from_desc_file(contents).expect("Failed to parse package desc file");
