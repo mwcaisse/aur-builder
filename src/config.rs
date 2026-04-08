@@ -1,7 +1,6 @@
 use serde::Deserialize;
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Config {
     pub image: Image,
     pub repository: Repository,
@@ -10,7 +9,6 @@ pub struct Config {
 }
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Image {
     #[serde(default = "default_image_name")]
     pub name: String,
@@ -21,19 +19,16 @@ pub struct Image {
 }
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Repository {
     pub name: String,
     pub path: String,
 }
 
 #[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
 pub struct Signing {
     pub enabled: bool,
     pub key_path: Option<String>,
     pub public_key_path: Option<String>,
-    pub key_id: Option<String>,
 }
 
 fn default_image_tag() -> String {

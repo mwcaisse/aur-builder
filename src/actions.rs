@@ -1,3 +1,4 @@
+use crate::pgp_utils::get_key_id_from_private_key_file;
 use crate::{config, package_parser};
 use std::io::{self, Write};
 use std::path::PathBuf;
@@ -36,7 +37,10 @@ pub fn run_create_repo(config: &config::Config) {
     if config.signing.enabled {
         command.arg("-s");
         command.arg("-k");
-        command.arg(config.signing.key_id.clone().unwrap());
+        command.arg(
+            get_key_id_from_private_key_file(config.signing.key_path.clone().unwrap().as_str())
+                .unwrap(),
+        );
     }
 
     command.arg(repo_path);
@@ -67,7 +71,10 @@ fn remove_packages_internal(config: &config::Config, packages: &[&str]) -> ExitS
     if config.signing.enabled {
         command.arg("-s");
         command.arg("-k");
-        command.arg(config.signing.key_id.clone().unwrap());
+        command.arg(
+            get_key_id_from_private_key_file(config.signing.key_path.clone().unwrap().as_str())
+                .unwrap(),
+        );
     }
 
     let repo_path = create_repository_file_path(config);
@@ -231,7 +238,7 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
         //TODO: Should add some checking that the signing values are set
         add_mount_arg(
             &mut update_command,
-            &config.signing.key_path.unwrap(),
+            &config.signing.key_path.clone().unwrap(),
             "/aur-builder-keys/signing.key",
         );
         add_mount_arg(
@@ -243,7 +250,9 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
         add_env_arg(
             &mut update_command,
             "AUR_BUILDER_GPG_KEY_ID",
-            &config.signing.key_id.unwrap(),
+            get_key_id_from_private_key_file(&config.signing.key_path.clone().unwrap().as_str())
+                .unwrap()
+                .as_str(),
         );
     }
 
