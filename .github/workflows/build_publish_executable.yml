@@ -1,0 +1,31 @@
+name: Build and Publish Executable
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_publish:
+    name: Build and Publish Executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v5
+
+      - name: Output version of rust being used
+        run: rustup --version
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: aur-builder
+          path: target/release/aur-builder
+          if-no-files-found: error
