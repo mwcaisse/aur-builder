@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::process::exit;
 
 fn main() {
-    let default_config_path: String = "/etc/aur-builder/config.yaml".to_string();
+    let default_config_path: String = "/opt/aur-builder/config.yaml".to_string();
 
     let matches = command!()
         .about("A helper to create local AUR repos and manage the packages inside of them.")
