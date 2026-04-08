@@ -1,4 +1,5 @@
 use crate::{config, package_parser};
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 
@@ -52,6 +53,12 @@ pub fn run_create_repo(config: &config::Config) {
 pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     println!("Removing the following packages: {:?}", packages);
 
+    let status = remove_packages_internal(config, packages);
+
+    println!("Finished removing packages! with status: {}", status);
+}
+
+fn remove_packages_internal(config: &config::Config, packages: &[&str]) -> ExitStatus {
     let mut command = Command::new("repo-remove");
 
     command.arg("--remove");
@@ -68,10 +75,8 @@ pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     command.args(packages);
 
     let status = command.status().expect("Failed to remove packages :(");
-
-    println!("Finished removing packages! with status: {}", status);
+    status
 }
-
 pub fn run_remove_orphans(config: &config::Config) {
     /*
 
@@ -89,6 +94,40 @@ pub fn run_remove_orphans(config: &config::Config) {
 
     */
 
+    let orphaned_packages = get_orphaned_packages(config);
+
+    // Confirm that the user wants to continue and remove the orphaned packages
+
+    println!(
+        "The following packages are orphaned and will be removed: {:?}",
+        orphaned_packages
+    );
+    print!("Proceed with removing them? [Y/n] ");
+    io::stdout().flush().ok();
+    let mut input = String::new();
+    let read_result = io::stdin().read_line(&mut input);
+
+    if !read_result.is_ok() || input.trim().to_lowercase() != "y" {
+        return;
+    }
+
+    //user agreed, remove the orphans
+    let status = remove_packages_internal(
+        config,
+        orphaned_packages
+            .iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<&str>>()
+            .as_slice(),
+    );
+
+    println!(
+        "Finished removing orphaned packages! with status: {}",
+        status
+    );
+}
+
+fn get_orphaned_packages(config: &config::Config) -> Vec<String> {
     let repo_path = create_repository_file_path(config);
     let our_packages = package_parser::get_packages_from_arch_database(&repo_path);
     let aur_packages = package_parser::get_all_aur_packages();
@@ -99,10 +138,11 @@ pub fn run_remove_orphans(config: &config::Config) {
         // Ignore package names that end in `-debug` as they are sometimes created as part of the build of the normal package
         // TODO: need to figure out how to differentiate these from actual packages with -debug at the end
         if !aur_packages.contains(package_name) && !package_name.ends_with("-debug") {
-            println!("Package {} is orphaned", package.name);
             orphaned_packages.push(package.name);
         }
     }
+
+    orphaned_packages
 }
 
 fn create_repository_file_path(config: &config::Config) -> String {
