@@ -5,4 +5,4 @@ Wants=aur-builder.timer
 [Service]
 Type=oneshot
 User=mitchell
-ExecStart=/usr/bin/aur-builder
+ExecStart=aur-builder update

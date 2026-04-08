@@ -5,4 +5,4 @@ Wants=aur-cleanup.timer
 [Service]
 Type=oneshot
 User=mitchell
-ExecStart=/usr/bin/aur-cleaner
+ExecStart=aur-builder clean
