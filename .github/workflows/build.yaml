@@ -1,0 +1,23 @@
+name: Build
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_publish:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+
+      - name: Output version of rust being used
+        run: rustup --version
+
+      - name: Build
+        run: cargo build --release
+        
