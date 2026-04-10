@@ -20,6 +20,10 @@ jobs:
       - name: Output version of rust being used
         run: rustup --version
 
+      - name: Install system dependencies
+        # sequoia-openpgp requires nettle to build
+        run: sudo apt install clang llvm pkg-config nettle-dev
+
       - name: Build
         run: cargo build --release
 
