@@ -2,7 +2,7 @@ name: Build and Publish Image
 on:
   push:
     branches:
-      - master
+      - main
   schedule:
     - cron: 25 6 * * 3 # every wednesday at 6:25 am
   workflow_dispatch:
@@ -16,7 +16,7 @@ jobs:
     name: Build and Publish image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
+      - name: Checkout main
         uses: actions/checkout@v4
 
       - name: Build and Publish
