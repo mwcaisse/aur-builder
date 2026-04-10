@@ -16,5 +16,5 @@ pub fn get_key_id_from_private_key_file(key_file_path: &str) -> Result<String, &
         return Err("Expected exactly one certificate in private key file.");
     }
 
-    return Ok(all_certs[0].keyid().to_string());
+    return Ok(all_certs[0].fingerprint().to_string());
 }

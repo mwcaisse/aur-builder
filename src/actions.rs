@@ -234,6 +234,12 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
     println!("Signing enabled!: {}", &config.signing.enabled.to_string());
 
     if config.signing.enabled {
+        let key_id =
+            get_key_id_from_private_key_file(&config.signing.key_path.clone().unwrap().as_str())
+                .unwrap();
+
+        println!("Signing Key ID: {}", &key_id);
+
         // add the public and private key mounts
         //TODO: Should add some checking that the signing values are set
         add_mount_arg(
@@ -247,13 +253,7 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
             "/aur-builder-keys/signing.pub",
         );
         // add the signing key config
-        add_env_arg(
-            &mut update_command,
-            "AUR_BUILDER_GPG_KEY_ID",
-            get_key_id_from_private_key_file(&config.signing.key_path.clone().unwrap().as_str())
-                .unwrap()
-                .as_str(),
-        );
+        add_env_arg(&mut update_command, "AUR_BUILDER_GPG_KEY_ID", &key_id);
     }
 
     update_command
