@@ -2,7 +2,7 @@ name: Build and Publish Executable
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -14,7 +14,7 @@ jobs:
     name: Build and Publish Executable
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout master
+      - name: Checkout main
         uses: actions/checkout@v5
 
       - name: Output version of rust being used
