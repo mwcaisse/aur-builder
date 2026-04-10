@@ -1,8 +1,6 @@
-name: Build and Publish Executable
+name: Build
 on:
-  push:
-    branches:
-      - main
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +9,7 @@ concurrency:
 
 jobs:
   build_publish:
-    name: Build and Publish Executable
+    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -20,16 +18,10 @@ jobs:
       - name: Output version of rust being used
         run: rustup --version
 
+      # TODO: Remove duplication between this and build_publish_executable.yml
       - name: Install system dependencies
         # sequoia-openpgp requires nettle to build
         run: sudo apt install clang llvm pkg-config nettle-dev
 
       - name: Build
         run: cargo build --release
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: aur-builder
-          path: target/release/aur-builder
-          if-no-files-found: error
