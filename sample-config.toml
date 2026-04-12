@@ -2,7 +2,7 @@
 additional_trusted_keys = []
 
 [image]
-name = "registry.gitlab.com/mwcaisse/application-images/arch-aur-builder"
+name = "ghcr.io/mwcaisse/aur-builder"
 tag = "latest"
 
 [repository]

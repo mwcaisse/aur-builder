@@ -35,7 +35,7 @@ fn default_image_tag() -> String {
     "latest".to_string()
 }
 fn default_image_name() -> String {
-    "registry.gitlab.com/mwcaisse/application-images/arch-aur-builder".to_string()
+    "ghcr.io/mwcaisse/aur-builder".to_string()
 }
 
 fn default_image_always_pull() -> bool {

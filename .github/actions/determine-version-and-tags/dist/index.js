@@ -32987,12 +32987,13 @@ try {
     let image_tag;
     // we are on a main branch
     if (branch === "main") {
-        image_tag = `registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:${commit_sha}`;
-        tags.push(`registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:latest`);
+        image_tag = `ghcr.io/mwcaisse/aur-builder:${commit_sha}`;
+        tags.push("ghcr.io/mwcaisse/aur-builder:latest");
         tags.push(image_tag);
+
     } else {
         // when building for dev, we push to a different repository
-        image_tag = `registry.gitlab.com/mwcaisse/application-images/arch-aur-builder-dev:${commit_sha}`;
+        image_tag = `ghcr.io/mwcaisse/aur-builder-dev:${commit_sha}`;
         tags.push(image_tag);
     }
 
