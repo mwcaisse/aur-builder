@@ -39,6 +39,6 @@ jobs:
           context: .
           file: ./Dockerfile
           no-cache: true
-          tags:
-            - registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:latest
-            - registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:${{ github.sha }}
+          tags: |
+            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:latest
+            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:${{ github.sha }}
