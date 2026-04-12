@@ -85,7 +85,7 @@ fn setup_image_for_building_packages(config: &DockerConfig) {
     );
 
     if config.signing.enabled {
-        configure_package_signing(&config);
+        configure_package_signing(&config, BUILD_USER);
     }
 
     configure_pacman_conf(&config);

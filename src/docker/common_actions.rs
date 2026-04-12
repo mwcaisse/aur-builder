@@ -43,9 +43,13 @@ pub fn create_directory(directory: &str) {
         .expect(format!("Failed to create directory: {}", directory).as_str());
 }
 
-pub fn configure_package_signing(config: &DockerConfig) {
+pub fn configure_package_signing(config: &DockerConfig, build_user: &str) {
+    println!("Configuring package signing");
     // import the private key
-    Command::new("gpg")
+    Command::new("sudo")
+        .arg("-u")
+        .arg(build_user)
+        .arg("gpg")
         .arg("--import")
         .arg(config.signing.key_path.clone().unwrap().as_str())
         .status()
@@ -68,18 +72,21 @@ pub fn configure_package_signing(config: &DockerConfig) {
 }
 
 pub fn configure_pacman_conf(config: &DockerConfig) {
-    let sig_level = if config.signing.enabled {
-        "Required DatabaseOptional"
-    } else {
-        "Optional TrustAll"
-    };
+    // TODO: Renable this. This was broken in the previous docker file as well
+    //   Need to figure out how to avoid the unknown trust issues when this isn't set to "Optional TrustAll"
+    // let sig_level = if config.signing.enabled {
+    //     "Required DatabaseOptional"
+    // } else {
+    //     "Optional TrustAll"
+    // };
 
     let pacman_conf_text = format!(
         "
+[{}]
 SigLevel = {}
 Server = file://{}
 ",
-        sig_level, config.repository.path
+        config.repository.name, "Optional TrustAll", config.repository.path
     );
 
     write_text_to_end_of_file("/etc/pacman.conf", &pacman_conf_text);

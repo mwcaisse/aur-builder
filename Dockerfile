@@ -7,9 +7,14 @@ WORKDIR /build/
 
 COPY ./Cargo.lock /build/Cargo.lock
 COPY ./Cargo.toml /build/Cargo.toml
-COPY ./src /build/src
+# Cargo needs to have an entry point (main.rs or lib.rs) present before it will fetch
+COPY ./src/main.rs /build/src/main.rs
+# fetch the dependecies up here. this should only run if deps change
+RUN cargo fetch --locked
 
-RUN cargo build --release
+# Copy the source and buuild the project down here
+COPY ./src /build/src
+RUN cargo build --release --locked
 
 RUN stat /build/target/release/aur-builder
 
