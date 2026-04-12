@@ -29,7 +29,7 @@ pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
         let config = read_docker_config(config_path);
 
         if let Some(docker_subcommand_matches) = docker_matches.subcommand_matches("add") {
-            if let Some(names) = matches.get_many::<String>("PACKAGE") {
+            if let Some(names) = docker_subcommand_matches.get_many::<String>("PACKAGE") {
                 let package_names = names.map(String::as_str).collect::<Vec<_>>();
                 run_add_packages(&config, &package_names);
             } else {
