@@ -1,0 +1,16 @@
+name: Determine Version and Tags
+description: Determine the version of the application and the tags for the docker image that should be applied
+
+outputs:
+  version:
+    description: The version of the application
+
+  tags:
+    description: The tags for the docker image that should be applied
+
+  image_tag:
+    description: Singular tag for this image that will reference this specific image (included in tags)
+
+runs:
+  using: node20
+  main: index.js

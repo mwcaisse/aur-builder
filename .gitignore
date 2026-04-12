@@ -3,6 +3,8 @@ example-files/
 .idea/
 keys/
 
+**/node_modules/
+
 config.toml
 
 # Added by cargo

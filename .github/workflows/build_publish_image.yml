@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+  pull_request:
   schedule:
     - cron: 25 6 * * 3 # every wednesday at 6:25 am
   workflow_dispatch:
@@ -18,6 +19,10 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v5
+
+      - name: Determine tags to build
+        id: determine-tags
+        uses: ./.github/actions/determine-version-and-tags
 
       - name: Login to Gitlab
         uses: docker/login-action@v4
@@ -39,6 +44,4 @@ jobs:
           context: .
           file: ./Dockerfile
           no-cache: true
-          tags: |
-            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:latest
-            registry.gitlab.com/mwcaisse/application-images/arch-aur-builder:${{ github.sha }}
+          tags: ${{ steps.determine-tags.outputs.tags }}
