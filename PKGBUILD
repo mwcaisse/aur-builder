@@ -10,7 +10,7 @@ license=("MIT")
 makedepends=('cargo' 'nettle')
 depends=()
 arch=('x86_64')
-source=('git+file://${PWD}')
+source=("git+file://${PWD}")
 b2sums=()
 
 prepare() {
