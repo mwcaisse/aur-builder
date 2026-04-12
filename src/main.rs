@@ -1,5 +1,6 @@
 mod actions;
 mod config;
+mod docker;
 mod package_parser;
 mod pgp_utils;
 
@@ -57,13 +58,23 @@ fn main() {
                         .long("number-to-keep")
                 )
         )
+        // These are internal commands that are used inside the docker image
+        .subcommand(
+            docker::commands::get_docker_commands()
+        )
         .get_matches();
 
+    // handle the docker commands and exit if they match
+    if docker::commands::handle_matching_commands(&matches) {
+        return;
+    }
+
+    // docker will use a different config format, so don't load it up until we get here
     // Check if a config file path was provided, otherwise use the default
     let config_path = matches
         .get_one::<PathBuf>("config")
         .map(|path| path.to_string_lossy().to_string())
-        .unwrap_or(default_config_path.to_string());
+        .unwrap_or(default_config_path);
 
     println!("Using config from: {}", config_path);
 
@@ -78,6 +89,7 @@ fn main() {
     );
     println!("With image signing: {}", config.signing.enabled);
 
+    // we didn't match a docker command, so we'll handle the rest of the commands
     if let Some(matches) = matches.subcommand_matches("add") {
         if let Some(names) = matches.get_many::<String>("PACKAGE") {
             let package_names = names.map(String::as_str).collect::<Vec<_>>();
