@@ -17,7 +17,7 @@ jobs:
       - name: Update and install dependencies
         run: |
           pacman -Syu --noconfirm
-          pacman -S --noconfirm base-devel cargo sudo
+          pacman -S --noconfirm base-devel sudo git cargo
 
       - name: Checkout main
         uses: actions/checkout@v5
