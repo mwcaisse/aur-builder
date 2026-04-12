@@ -16,7 +16,7 @@ pub fn get_docker_commands() -> Command {
         .subcommand(Command::new("rebuild").about("Rebuilds all of the packages in the repository"))
 }
 
-const DEFAULT_DOCKER_CONFIG_PATH: &str = "/opt/aur-builder/config.toml";
+pub const DEFAULT_DOCKER_CONFIG_PATH: &str = "/opt/aur-builder/config.toml";
 
 pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
     if let Some(docker_matches) = matches.subcommand_matches("docker") {

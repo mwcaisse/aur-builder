@@ -1,10 +1,14 @@
+use crate::config::Config;
+use crate::docker::commands::DEFAULT_DOCKER_CONFIG_PATH;
+use crate::docker::config::{write_docker_config_to_file, DockerConfig, Repository, Signing};
+use crate::package_parser;
 use crate::pgp_utils::get_key_id_from_private_key_file;
-use crate::{config, package_parser};
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
+use tempfile::NamedTempFile;
 
-pub fn run_clean(config: config::Config, to_keep: u32) {
+pub fn run_clean(config: Config, to_keep: u32) {
     println!(
         "Cleaning up old versions of packages! Keeping at most {} versions",
         to_keep
@@ -25,7 +29,7 @@ pub fn run_clean(config: config::Config, to_keep: u32) {
     );
 }
 
-pub fn run_create_repo(config: &config::Config) {
+pub fn run_create_repo(config: &Config) {
     println!("Creating repository at path: {}", config.repository.path);
 
     // TODO: Should make sure that the parent directories in `repo_path` exist before calling `repo-add`
@@ -54,7 +58,7 @@ pub fn run_create_repo(config: &config::Config) {
 }
 
 // TODO: Should probably borrow config in the other functions in here as well
-pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
+pub fn run_remove_packages(config: &Config, packages: &[&str]) {
     println!("Removing the following packages: {:?}", packages);
 
     let status = remove_packages_internal(config, packages);
@@ -62,7 +66,7 @@ pub fn run_remove_packages(config: &config::Config, packages: &[&str]) {
     println!("Finished removing packages! with status: {}", status);
 }
 
-fn remove_packages_internal(config: &config::Config, packages: &[&str]) -> ExitStatus {
+fn remove_packages_internal(config: &Config, packages: &[&str]) -> ExitStatus {
     let mut command = Command::new("repo-remove");
 
     command.arg("--remove");
@@ -84,7 +88,7 @@ fn remove_packages_internal(config: &config::Config, packages: &[&str]) -> ExitS
     let status = command.status().expect("Failed to remove packages :(");
     status
 }
-pub fn run_remove_orphans(config: &config::Config) {
+pub fn run_remove_orphans(config: &Config) {
     /*
 
        - We'll need to get a list of all current packages in the AUR
@@ -134,7 +138,7 @@ pub fn run_remove_orphans(config: &config::Config) {
     );
 }
 
-fn get_orphaned_packages(config: &config::Config) -> Vec<String> {
+fn get_orphaned_packages(config: &Config) -> Vec<String> {
     let repo_path = create_repository_file_path(config);
     let our_packages = package_parser::get_packages_from_arch_database(&repo_path);
     let aur_packages = package_parser::get_all_aur_packages();
@@ -152,7 +156,7 @@ fn get_orphaned_packages(config: &config::Config) -> Vec<String> {
     orphaned_packages
 }
 
-fn create_repository_file_path(config: &config::Config) -> String {
+fn create_repository_file_path(config: &Config) -> String {
     let mut path = PathBuf::from(config.repository.path.clone());
     // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
     path.push(format!("{}.db.tar.xz", config.repository.name));
@@ -160,18 +164,20 @@ fn create_repository_file_path(config: &config::Config) -> String {
     return path.to_string_lossy().to_string();
 }
 
-pub fn run_add_packages(config: config::Config, packages: &[&str]) {
+pub fn run_add_packages(config: Config, packages: &[&str]) {
     println!("Adding the following packages: {:?}", packages);
 
-    let command_status = run_docker_image(config, Option::from(packages));
+    let mut aur_builder_command = vec!["docker", "add"];
+    aur_builder_command.extend_from_slice(packages);
+    let command_status = run_docker_image(config, &aur_builder_command);
 
     println!("Finished adding packages! with status: {}", command_status);
 }
 
-pub fn run_update(config: config::Config) {
+pub fn run_update(config: Config) {
     println!("Performing update on all packages!");
 
-    let command_status = run_docker_image(config, None);
+    let command_status = run_docker_image(config, &["docker", "update"][..]);
 
     println!(
         "Finished updating all packages! with status: {}",
@@ -179,11 +185,11 @@ pub fn run_update(config: config::Config) {
     );
 }
 
-pub fn run_rebuild_all(config: config::Config) {
+pub fn run_rebuild_all(config: Config) {
     println!("Performing rebuild on all packages!");
 
     // Right now to re-build all packages, we pass a package with the name "rebuild" to the docker image
-    let command_status = run_docker_image(config, Option::from(&["rebuild"][..]));
+    let command_status = run_docker_image(config, &["docker", "rebuild"][..]);
 
     println!(
         "Finished rebuilding all packages! with status: {}",
@@ -191,7 +197,26 @@ pub fn run_rebuild_all(config: config::Config) {
     );
 }
 
-fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitStatus {
+fn create_docker_image_config(
+    config: &Config,
+    repository_mount_path: &str,
+    signing_key_mount_path: Option<&str>,
+    signing_public_key_mount_path: Option<&str>,
+) -> DockerConfig {
+    DockerConfig {
+        repository: Repository {
+            name: config.repository.name.clone(),
+            path: repository_mount_path.to_string(),
+        },
+        signing: Signing {
+            enabled: config.signing.enabled,
+            key_path: signing_key_mount_path.map(|p| p.to_string()),
+            public_key_path: signing_public_key_mount_path.map(|p| p.to_string()),
+        },
+        additional_trusted_keys: config.additional_trusted_keys.clone(),
+    }
+}
+fn run_docker_image(config: Config, aur_builder_command: &[&str]) -> ExitStatus {
     let docker_image = format!("{}:{}", config.image.name, config.image.tag);
 
     // if we are configured to always pull, pull the image before we run it
@@ -206,66 +231,67 @@ fn run_docker_image(config: config::Config, packages: Option<&[&str]>) -> ExitSt
     }
 
     // Now we shall run the docker image itself
-
-    let trusted_keys = config.additional_trusted_keys.join(" ");
     let mut update_command = Command::new("docker");
 
-    update_command.arg("run");
-    add_mount_arg(&mut update_command, &config.repository.path, "/repo");
-    add_env_arg(
-        &mut update_command,
-        "AUR_BUILDER_REPO_NAME",
-        &config.repository.name,
-    );
+    const REPO_MOUNT_PATH: &str = "/repo";
+    const SIGNING_KEY_MOUNT_PATH: &str = "/aur-builder-keys/signing.key";
+    const SIGNING_PUBLIC_KEY_MOUNT_PATH: &str = "/aur-builder-keys/signing.pub";
 
-    let space_separated_packages = packages.map_or(String::new(), |packages| packages.join(" "));
-    add_env_arg(
+    update_command.arg("run");
+    add_mount_arg(
         &mut update_command,
-        "AUR_BUILDER_NEW_PACKAGES",
-        &space_separated_packages,
-    );
-    add_env_arg(&mut update_command, "AUR_BUILDER_GPG_KEYS", &trusted_keys);
-    add_env_arg(
-        &mut update_command,
-        "AUR_BUILDER_SIGN_PACKAGES",
-        &config.signing.enabled.to_string(),
+        &config.repository.path,
+        REPO_MOUNT_PATH,
     );
 
     println!("Signing enabled!: {}", &config.signing.enabled.to_string());
 
     if config.signing.enabled {
-        let signing_key_id =
-            get_key_id_from_private_key_file(&config.signing.key_path.clone().unwrap().as_str())
-                .unwrap();
-
         // add the public and private key mounts
         //TODO: Should add some checking that the signing values are set
         add_mount_arg(
             &mut update_command,
-            &config.signing.key_path.clone().unwrap(),
-            "/aur-builder-keys/signing.key",
+            &config.signing.key_path.as_ref().unwrap(),
+            SIGNING_KEY_MOUNT_PATH,
         );
         add_mount_arg(
             &mut update_command,
-            &config.signing.public_key_path.unwrap(),
-            "/aur-builder-keys/signing.pub",
-        );
-        // add the signing key config
-        add_env_arg(
-            &mut update_command,
-            "AUR_BUILDER_GPG_KEY_ID",
-            &signing_key_id,
+            &config.signing.public_key_path.as_ref().unwrap(),
+            SIGNING_PUBLIC_KEY_MOUNT_PATH,
         );
     }
 
+    let docker_config = create_docker_image_config(
+        &config,
+        REPO_MOUNT_PATH,
+        if config.signing.enabled {
+            Some(SIGNING_KEY_MOUNT_PATH)
+        } else {
+            None
+        },
+        if config.signing.enabled {
+            Some(SIGNING_PUBLIC_KEY_MOUNT_PATH)
+        } else {
+            None
+        },
+    );
+
+    let docker_config_file =
+        NamedTempFile::new().expect("Failed to create temporary docker config file");
+
+    write_docker_config_to_file(&docker_config, docker_config_file.path().to_str().unwrap());
+
+    add_mount_arg(
+        &mut update_command,
+        docker_config_file.path().to_str().unwrap(),
+        DEFAULT_DOCKER_CONFIG_PATH,
+    );
+
     update_command
         .arg(&docker_image)
+        .args(aur_builder_command)
         .status()
         .expect("Failed to update packages :(")
-}
-
-fn add_env_arg(command: &mut Command, name: &str, value: &str) {
-    command.args(["--env", format!("{}={}", name, value).as_str()]);
 }
 
 fn add_mount_arg(command: &mut Command, source: &str, destination: &str) {
