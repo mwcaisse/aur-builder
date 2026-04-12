@@ -1,3 +1,4 @@
+use crate::docker::actions::{run_add_packages, run_rebuild_all_packages, run_update_packages};
 use crate::docker::config::read_docker_config;
 use clap::{arg, Command};
 use std::path::PathBuf;
@@ -30,16 +31,18 @@ pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
         if let Some(docker_subcommand_matches) = docker_matches.subcommand_matches("add") {
             if let Some(names) = matches.get_many::<String>("PACKAGE") {
                 let package_names = names.map(String::as_str).collect::<Vec<_>>();
-                // TODO: handle what we do here
+                run_add_packages(&config, &package_names);
             } else {
                 println!("Must specify at least one package to add!");
                 exit(1);
             }
         } else if let Some(_docker_subcommand_matches) = docker_matches.subcommand_matches("update")
         {
+            run_update_packages(&config);
         } else if let Some(_docker_subcommand_matches) =
             docker_matches.subcommand_matches("rebuild")
         {
+            run_rebuild_all_packages(&config);
         } else {
             println!("Unknown docker subcommand!");
             exit(1)
