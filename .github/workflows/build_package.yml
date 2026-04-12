@@ -1,0 +1,27 @@
+name: Build Package
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Update and install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel cargo
+
+      - name: Checkout main
+        uses: actions/checkout@v5
+
+      - name: Build package
+        run: makepkg -s
+

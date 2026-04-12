@@ -2,6 +2,12 @@
 name = "aur-builder"
 version = "0.1.0"
 edition = "2024"
+authors = [
+    "Mitchell Caisse"
+]
+description = "AUR Wrapper to easily create, manage, and update a local repository of AUR packages"
+repository = "https://github.com/mwcaisse/aur-builder"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.6.0", features = ["cargo"] }

@@ -6,13 +6,15 @@ name = "ghcr.io/mwcaisse/aur-builder"
 tag = "latest"
 
 [repository]
+# The name of the repository
 name = ""
+# The path to where the repository exists on disc
 path = ""
 
-# TODO: Make this a bit better?
-#   Do we need both the public + private key? Or will just private suffice?
-#   Do we need to have the key id provided separately, or can we derive it from the key itself?
 [signing]
+# Whether to sign packages
 enabled = false
-key_path = ""
-public_key_path = ""
+# Path to the private key to use for signing packages, required if signing is enabled
+# key_path = ""
+# Path to the public key to use for signing packages, required if signing is enabled
+# public_key_path = ""
