@@ -53,6 +53,7 @@ chown -R build:build ./working-dir
 pushd working-dir
 
 ## Let Build install packages
+## TODO: This can be built into the image itself
 export EDITOR="tee -a"
 echo "build ALL=(ALL) NOPASSWD: ALL" | visudo
 
