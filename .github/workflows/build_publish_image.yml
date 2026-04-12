@@ -23,8 +23,8 @@ jobs:
         uses: docker/login-action@v4
         with:
           registry: registry.gitlab.com
-          username: ${{ vars.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ vars.GITLAB_USERNAME }}
+          password: ${{ secrets.GITLAB_TOKEN }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
