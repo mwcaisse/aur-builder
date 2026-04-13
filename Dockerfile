@@ -14,7 +14,7 @@ RUN cargo fetch --locked
 
 # Copy the source and buuild the project down here
 COPY ./src /build/src
-RUN cargo build --release --locked
+RUN cargo build --release --locked --all-features
 
 RUN stat /build/target/release/aur-builder
 
