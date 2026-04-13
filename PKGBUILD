@@ -10,8 +10,9 @@ license=("MIT")
 makedepends=('cargo' 'nettle' 'clang')
 depends=()
 arch=('x86_64')
-source=("git+file://${PWD}")
+source=("aur-builder::git+file://${PWD}")
 b2sums=()
+backup=("etc/${pkgname}/config.toml")
 
 prepare() {
     export RUSTUP_TOOLCHAIN=stable
@@ -22,6 +23,7 @@ build() {
     export RUSTUP_TOOLCHAIN=stable
     export CARGO_TARGET_DIR=target
     cargo build --frozen --release --all-features
+    ls
 }
 
 check() {
@@ -30,10 +32,16 @@ check() {
 }
 
 package() {
+
+    echo "SRCDIR=${srcdir}"
+    echo "PWD=$(pwd)"
+    ls -l
+    ls -l "${srcdir}"
+
     install -Dm0755 -t "${pkgdir}/usr/bin/" "target/release/${pkgname}"
     # for custom license, e.g. MIT
-    install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+    install -Dm644 "${pkgname}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 
     # Config file
-    install -Dm644 sample-config.toml "${pkgdir}/etc/${pkgname}/config.toml"
+    install -Dm644 "${pkgname}/sample-config.toml" "${pkgdir}/etc/${pkgname}/config.toml"
 }

@@ -1,7 +1,7 @@
-FROM rust:1.94-slim AS build
+FROM archlinux:latest AS build
 
-# install nbuild dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends clang llvm pkg-config nettle-dev && rm -rf /var/lib/apt/lists/*
+RUN pacman -Syu --noconfirm
+RUN pacman -S --noconfirm base-devel sudo git cargo clang nettle
 
 WORKDIR /build/
 
