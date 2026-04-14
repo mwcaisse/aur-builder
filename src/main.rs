@@ -9,12 +9,12 @@ use std::path::PathBuf;
 use std::process::exit;
 
 fn main() {
-    let default_config_path: String = "/opt/aur-builder/config.toml".to_string();
+    let default_config_path: String = "/etc/aur-builder/config.toml".to_string();
 
     let matches = command!()
         .about("A helper to create local AUR repos and manage the packages inside of them.")
         .arg(
-            arg!(-c --config <FILE> "Path to configuration file. Defaults to '/opt/aur-builder/config.toml'")
+            arg!(-c --config <FILE> "Path to configuration file. Defaults to '/etc/aur-builder/config.toml'")
                 .required(false)
                 .value_parser(value_parser!(PathBuf))
         )
