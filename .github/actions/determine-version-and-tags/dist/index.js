@@ -32997,6 +32997,7 @@ try {
         tags.push(image_tag);
     }
 
+    //jajajajajaj
     // sanity check that image_tag was set, and it was put into the tags array
     if (image_tag.length === 0 || tags.indexOf(image_tag) === -1) {
         throw new Error("Unable to determine image tag or it was not pushed into tags array");
