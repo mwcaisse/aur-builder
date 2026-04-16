@@ -5,6 +5,9 @@ mod error;
 mod package_parser;
 mod pgp_utils;
 
+#[cfg(test)]
+mod test_utils;
+
 use clap::{arg, command, value_parser, Command};
 use std::path::PathBuf;
 use std::process::exit;
