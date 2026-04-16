@@ -120,6 +120,7 @@ fn parse_fields_from_desc_file(contents: &str) -> Result<HashMap<String, Vec<Str
 #[cfg(test)]
 mod tests {
     use crate::package_parser::*;
+    use pretty_assertions::assert_eq;
 
     const SIMPLE_DESC_CONTENTS: &str = "%FILENAME%
 bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst

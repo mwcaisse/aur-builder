@@ -37,15 +37,7 @@ pub fn run_create_repo(config: &Config) {
 
     let mut command = Command::new("repo-add");
 
-    // if signing is enabled, pass sign flag + key flag
-    if config.signing.enabled {
-        command.arg("-s");
-        command.arg("-k");
-        command.arg(
-            get_key_id_from_private_key_file(config.signing.key_path.clone().unwrap().as_str())
-                .unwrap(),
-        );
-    }
+    add_signing_args_to_repo_command(&mut command, config);
 
     command.arg(repo_path);
 
@@ -71,6 +63,17 @@ fn remove_packages_internal(config: &Config, packages: &[&str]) -> ExitStatus {
 
     command.arg("--remove");
 
+    add_signing_args_to_repo_command(&mut command, config);
+
+    let repo_path = create_repository_file_path(config);
+    command.arg(repo_path);
+    command.args(packages);
+
+    let status = command.status().expect("Failed to remove packages :(");
+    status
+}
+
+fn add_signing_args_to_repo_command(command: &mut Command, config: &Config) {
     // if signing is enabled, pass sign flag + key flag
     if config.signing.enabled {
         command.arg("-s");
@@ -80,14 +83,8 @@ fn remove_packages_internal(config: &Config, packages: &[&str]) -> ExitStatus {
                 .unwrap(),
         );
     }
-
-    let repo_path = create_repository_file_path(config);
-    command.arg(repo_path);
-    command.args(packages);
-
-    let status = command.status().expect("Failed to remove packages :(");
-    status
 }
+
 pub fn run_remove_orphans(config: &Config) {
     /*
 
