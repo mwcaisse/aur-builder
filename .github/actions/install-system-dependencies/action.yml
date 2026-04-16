@@ -1,0 +1,9 @@
+name: Install system dependencies
+description: Install the system dependencies required by the project on Ubuntu
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: sudo apt-get update -y
+    - shell: bash
+      run: sudo apt install -y clang llvm pkg-config nettle-dev

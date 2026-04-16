@@ -1,8 +1,6 @@
-name: Build and Publish Executable
+name: Tests
 on:
-  push:
-    branches:
-      - main
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -11,7 +9,7 @@ concurrency:
 
 jobs:
   build_publish:
-    name: Build and Publish Executable
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
@@ -23,12 +21,5 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-dependencies
 
-      - name: Build
-        run: cargo build --release --all-features
-
-      - name: Upload executable artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: aur-builder
-          path: target/release/aur-builder
-          if-no-files-found: error
+      - name: Run tests
+        run: cargo test

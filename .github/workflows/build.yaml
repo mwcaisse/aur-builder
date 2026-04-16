@@ -18,10 +18,8 @@ jobs:
       - name: Output version of rust being used
         run: rustup --version
 
-      # TODO: Remove duplication between this and build_publish_executable.yml
       - name: Install system dependencies
-        # sequoia-openpgp requires nettle to build
-        run: sudo apt install clang llvm pkg-config nettle-dev
+        uses: ./.github/actions/install-system-dependencies
 
       - name: Build
         run: cargo build --release --all-features
