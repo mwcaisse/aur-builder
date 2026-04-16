@@ -1,20 +1,49 @@
+use crate::error::AurBuilderError;
 use sequoia_openpgp::cert::CertParser;
 use sequoia_openpgp::parse::Parse;
 use std::fs::File;
 use std::io::BufReader;
 
-pub fn get_key_id_from_private_key_file(key_file_path: &str) -> Result<String, &str> {
-    let file = File::open(key_file_path).expect("Unable to open private key file");
+pub fn get_key_id_from_private_key_file(key_file_path: &str) -> Result<String, AurBuilderError> {
+    let file = File::open(key_file_path)
+        .map_err(|e| AurBuilderError::new(format!("Unable to open key file: {}", e)))?;
+
     let reader = BufReader::new(file);
 
-    let mut certs = CertParser::from_reader(reader).expect("Unable to parse private key file");
-    let all_certs = certs
+    let all_certs = CertParser::from_reader(reader)
+        .map_err(|e| AurBuilderError::new(format!("Unable to parse key file: {}", e)))?
         .collect::<Result<Vec<_>, _>>()
-        .expect("Unable to collect certificates");
+        .map_err(|e| AurBuilderError::new(format!("Unable to collect certificates from: {}", e)))?;
 
     if all_certs.len() != 1 {
-        return Err("Expected exactly one certificate in private key file.");
+        return Err(AurBuilderError::new(
+            "Expected exactly one certificate in private key file.".to_string(),
+        ));
     }
 
     return Ok(all_certs[0].fingerprint().to_string());
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::pgp_utils::get_key_id_from_private_key_file;
+    use std::path::PathBuf;
+
+    #[test]
+    fn test_can_parse_key_id_from_file() {
+        let mut key_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        key_path.push("resources/tests/FD65E82A5CA3DA76E8ECA4977F4989778F99886F.key");
+
+        let key_id = get_key_id_from_private_key_file(key_path.to_str().unwrap()).unwrap();
+        assert_eq!(key_id, "FD65E82A5CA3DA76E8ECA4977F4989778F99886F");
+    }
+
+    #[test]
+    fn test_can_parse_key_id_from_public_key_file() {
+        let mut key_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        key_path.push("resources/tests/FD65E82A5CA3DA76E8ECA4977F4989778F99886F.pub");
+
+        let key_id = get_key_id_from_private_key_file(key_path.to_str().unwrap()).unwrap();
+        assert_eq!(key_id, "FD65E82A5CA3DA76E8ECA4977F4989778F99886F");
+    }
 }

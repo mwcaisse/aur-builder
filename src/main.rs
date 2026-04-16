@@ -1,6 +1,7 @@
 mod actions;
 mod config;
 mod docker;
+mod error;
 mod package_parser;
 mod pgp_utils;
 
