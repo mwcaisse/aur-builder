@@ -13,7 +13,7 @@ pub struct Config {
     pub additional_trusted_keys: Vec<String>,
 }
 
-#[derive(Deserialize, Default)]
+#[derive(Deserialize)]
 pub struct Image {
     #[serde(default = "default_image_name")]
     pub name: String,
@@ -21,6 +21,16 @@ pub struct Image {
     pub tag: String,
     #[serde(default = "default_image_always_pull")]
     pub always_pull: bool,
+}
+
+impl Default for Image {
+    fn default() -> Self {
+        Self {
+            name: default_image_name(),
+            tag: default_image_tag(),
+            always_pull: default_image_always_pull(),
+        }
+    }
 }
 
 #[derive(Deserialize)]
