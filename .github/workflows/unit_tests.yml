@@ -1,0 +1,25 @@
+name: Unit Tests
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build_publish:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+
+      - name: Output version of rust being used
+        run: rustup --version
+
+      - name: Install system dependencies
+        uses: ./.github/actions/install-system-dependencies
+
+      - name: Run unit tests
+        run: cargo test --bin aur-builder
