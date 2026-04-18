@@ -21,5 +21,6 @@ jobs:
       - name: Install system dependencies
         uses: ./.github/actions/install-system-dependencies
 
+      # TODO: This need to run on an archlinux container with  aur-utils installed
       - name: Run integration tests
         run: cargo test --test '*'
