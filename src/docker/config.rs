@@ -1,23 +1,24 @@
+use crate::config::NonEmptyString;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct DockerConfig {
     pub repository: Repository,
     pub signing: Signing,
-    pub additional_trusted_keys: Vec<String>,
+    pub additional_trusted_keys: Vec<NonEmptyString>,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct Repository {
-    pub name: String,
-    pub path: String,
+    pub name: NonEmptyString,
+    pub path: NonEmptyString,
 }
 
 #[derive(Deserialize, Serialize)]
 pub struct Signing {
     pub enabled: bool,
-    pub key_path: Option<String>,
-    pub public_key_path: Option<String>,
+    pub key_path: Option<NonEmptyString>,
+    pub public_key_path: Option<NonEmptyString>,
 }
 
 pub fn read_docker_config(config_file_path: String) -> DockerConfig {

@@ -1,4 +1,4 @@
-use crate::config::Config;
+use crate::config::{Config, NonEmptyString};
 use crate::docker::commands::DEFAULT_DOCKER_CONFIG_PATH;
 use crate::docker::config::{write_docker_config_to_file, DockerConfig, Repository, Signing};
 use crate::package_parser;
@@ -17,7 +17,7 @@ pub fn run_clean(config: Config, to_keep: u32) {
     let clean_status = Command::new("paccache")
         .arg("-rv")
         .arg("-c")
-        .arg(&config.repository.path)
+        .arg(&config.repository.path.as_str())
         .arg("-k")
         .arg(to_keep.to_string())
         .status()
@@ -30,7 +30,10 @@ pub fn run_clean(config: Config, to_keep: u32) {
 }
 
 pub fn run_create_repo(config: &Config) {
-    println!("Creating repository at path: {}", config.repository.path);
+    println!(
+        "Creating repository at path: {}",
+        config.repository.path.as_str()
+    );
 
     // TODO: Should make sure that the parent directories in `repo_path` exist before calling `repo-add`
     let ref repo_path = create_repository_file_path(config);
@@ -154,9 +157,9 @@ fn get_orphaned_packages(config: &Config) -> Vec<String> {
 }
 
 fn create_repository_file_path(config: &Config) -> String {
-    let mut path = PathBuf::from(config.repository.path.clone());
+    let mut path = PathBuf::from(config.repository.path.as_str());
     // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
-    path.push(format!("{}.db.tar.xz", config.repository.name));
+    path.push(format!("{}.db.tar.xz", config.repository.name.as_str()));
 
     return path.to_string_lossy().to_string();
 }
@@ -203,18 +206,22 @@ fn create_docker_image_config(
     DockerConfig {
         repository: Repository {
             name: config.repository.name.clone(),
-            path: repository_mount_path.to_string(),
+            path: NonEmptyString::from_known_str(repository_mount_path),
         },
         signing: Signing {
             enabled: config.signing.enabled,
-            key_path: signing_key_mount_path.map(|p| p.to_string()),
-            public_key_path: signing_public_key_mount_path.map(|p| p.to_string()),
+            key_path: signing_key_mount_path.map(NonEmptyString::from_known_str),
+            public_key_path: signing_public_key_mount_path.map(NonEmptyString::from_known_str),
         },
         additional_trusted_keys: config.additional_trusted_keys.clone(),
     }
 }
 fn run_docker_image(config: Config, aur_builder_command: &[&str]) -> ExitStatus {
-    let docker_image = format!("{}:{}", config.image.name, config.image.tag);
+    let docker_image = format!(
+        "{}:{}",
+        config.image.name.as_str(),
+        config.image.tag.as_str()
+    );
 
     // if we are configured to always pull, pull the image before we run it
     if config.image.always_pull {
@@ -237,7 +244,7 @@ fn run_docker_image(config: Config, aur_builder_command: &[&str]) -> ExitStatus 
     update_command.arg("run");
     add_mount_arg(
         &mut update_command,
-        &config.repository.path,
+        &config.repository.path.as_str(),
         REPO_MOUNT_PATH,
     );
 
@@ -248,12 +255,12 @@ fn run_docker_image(config: Config, aur_builder_command: &[&str]) -> ExitStatus 
         //TODO: Should add some checking that the signing values are set
         add_mount_arg(
             &mut update_command,
-            &config.signing.key_path.as_ref().unwrap(),
+            &config.signing.key_path.as_ref().unwrap().as_str(),
             SIGNING_KEY_MOUNT_PATH,
         );
         add_mount_arg(
             &mut update_command,
-            &config.signing.public_key_path.as_ref().unwrap(),
+            &config.signing.public_key_path.as_ref().unwrap().as_str(),
             SIGNING_PUBLIC_KEY_MOUNT_PATH,
         );
     }

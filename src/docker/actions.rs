@@ -79,7 +79,7 @@ fn setup_image_for_building_packages(config: &DockerConfig) {
         &config
             .additional_trusted_keys
             .iter()
-            .map(String::as_str)
+            .map(|s| s.as_str())
             .collect::<Vec<&str>>(),
         BUILD_USER,
     );
