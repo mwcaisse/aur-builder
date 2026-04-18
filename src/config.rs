@@ -101,14 +101,27 @@ fn default_image_always_pull() -> bool {
 pub fn read_config(config_file_path: String) -> Config {
     let config_text =
         std::fs::read_to_string(config_file_path).expect("Failed to read config file");
-    let config: Config = toml::from_str(&config_text).expect("Failed to parse config file");
 
-    config
+    read_config_from_str(&config_text)
+}
+
+fn read_config_from_str(config_text: &str) -> Config {
+    let result = toml::from_str(&config_text);
+
+    if result.is_err() {
+        let error = result.err().unwrap();
+        panic!("Failed to parse config: {error}");
+    }
+
+    result.unwrap()
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{default_image_always_pull, default_image_name, default_image_tag, Config};
+    use crate::config::{
+        default_image_always_pull, default_image_name, default_image_tag, read_config_from_str,
+        Config,
+    };
     use pretty_assertions::assert_eq;
 
     const CONFIG_EXAMPLE: &str = r#"
@@ -137,7 +150,7 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
 
     #[test]
     fn test_can_parse_config() {
-        let config: Config = toml::from_str(CONFIG_EXAMPLE).expect("Failed to parse config");
+        let config: Config = read_config_from_str(CONFIG_EXAMPLE);
 
         assert_eq!(
             config.image.name.as_str(),
@@ -187,7 +200,7 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
 
     #[test]
     fn test_can_parse_minimal_config() {
-        let config: Config = toml::from_str(MINIMAL_CONFIG).expect("Failed to parse config");
+        let config: Config = read_config_from_str(MINIMAL_CONFIG);
 
         assert_eq!(config.repository.name.as_str(), "mitchell-aur");
         assert_eq!(
@@ -204,5 +217,18 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
         assert!(config.signing.public_key_path.is_none());
 
         assert_eq!(config.additional_trusted_keys.len(), 0);
+    }
+
+    const MINIMAL_CONFIG_EMPTY_STRINGS: &str = r#"
+    [repository]
+    name = ""
+    path = ""
+    "#;
+
+    #[test]
+    fn test_parsing_config_with_empty_strings_in_repository_errors() {
+        let config_result = toml::from_str::<Config>(MINIMAL_CONFIG_EMPTY_STRINGS);
+
+        assert!(config_result.is_err());
     }
 }
