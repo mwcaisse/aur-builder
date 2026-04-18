@@ -86,7 +86,9 @@ pub fn configure_pacman_conf(config: &DockerConfig) {
 SigLevel = {}
 Server = file://{}
 ",
-        config.repository.name, "Optional TrustAll", config.repository.path
+        config.repository.name.as_str(),
+        "Optional TrustAll",
+        config.repository.path.as_str()
     );
 
     write_text_to_end_of_file("/etc/pacman.conf", &pacman_conf_text);

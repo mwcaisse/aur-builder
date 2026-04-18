@@ -86,10 +86,15 @@ fn main() {
 
     println!("Loaded up config!");
 
-    println!("Using image: {}:{}", config.image.name, config.image.tag);
+    println!(
+        "Using image: {}:{}",
+        config.image.name.as_str(),
+        config.image.tag.as_str()
+    );
     println!(
         "Using repository {} at {}",
-        config.repository.name, config.repository.path
+        config.repository.name.as_str(),
+        config.repository.path.as_str()
     );
     println!("With image signing: {}", config.signing.enabled);
 
