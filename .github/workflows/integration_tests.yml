@@ -19,7 +19,7 @@ jobs:
         run: |
           pacman -Syyu --noconfirm
           pacman -S --noconfirm git
-        
+
       - name: Checkout main
         uses: actions/checkout@v5
 
@@ -33,6 +33,14 @@ jobs:
 
       - name: Output version of rust being used
         run: rustup --version
+
+      - name: Install and configure docker
+        shell: bash
+        run: |
+          pacman -S docker --noconfirm
+          systemctl start docker
+          
+          docker info
 
       - name: Run integration tests
         run: cargo test --test '*'
