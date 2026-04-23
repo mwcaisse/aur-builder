@@ -38,7 +38,6 @@ jobs:
         shell: bash
         run: |
           pacman -S docker --noconfirm
-          systemctl start docker
           
           docker info
 
