@@ -14,6 +14,9 @@ jobs:
     container:
       image: archlinux:latest
     steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+
       - name: Install system dependencies
         uses: ./.github/actions/install-system-dependencies
         with:
@@ -21,9 +24,6 @@ jobs:
 
       - name: Build and install aur-utils
         uses: ./.github/actions/install-aur-utils
-
-      - name: Checkout main
-        uses: actions/checkout@v5
 
       - name: Output version of rust being used
         run: rustup --version

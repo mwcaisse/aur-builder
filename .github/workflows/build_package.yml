@@ -14,14 +14,14 @@ jobs:
     container:
       image: archlinux:latest
     steps:
+
+      - name: Checkout main
+        uses: actions/checkout@v5
+
       - name: Install system dependencies
         uses: ./.github/actions/install-system-dependencies
         with:
           distro: arch
-      
-
-      - name: Checkout main
-        uses: actions/checkout@v5
 
       - name: Create build user
         run: |
