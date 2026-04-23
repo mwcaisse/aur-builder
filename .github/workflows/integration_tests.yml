@@ -14,6 +14,12 @@ jobs:
     container:
       image: archlinux:latest
     steps:
+      - name: Install git
+        shell: bash
+        run: |
+          pacman -Syyu --noconfirm
+          pacman -S --noconfirm git
+        
       - name: Checkout main
         uses: actions/checkout@v5
 

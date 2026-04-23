@@ -28,7 +28,7 @@ runs:
       if: ${{ inputs.distro == 'arch' }}
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm base-devel sudo git cargo rustup
+        pacman -S --noconfirm base-devel sudo git cargo rustup clang nettle
         
         # configure rustup
         rustup default stable
