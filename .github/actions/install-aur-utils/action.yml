@@ -1,0 +1,35 @@
+name: Install aurutils
+description: Builds and installs aurutils
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      shell: bash
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm sudo base-devel git expect diffstat jq pacutils wget devtools bash-completion perl-json-xs
+
+    - name: Pre-requisites
+      shell: bash
+      run: |
+        useradd -m build
+        
+        # Add build to the sudoers file
+        echo 'build ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/build
+        chmod 0440 /etc/sudoers.d/build
+
+
+    - name: Build and install aurutils
+      shell: bash
+      run: |
+        mkdir -p /home/build/aurutils
+        cd /home/build/aurutils
+        
+        git clone https://aur.archlinux.org/aurutils.git
+        
+        chown -R build:build /home/build/aurutils
+        cd aurutils
+        sudo -u build makepkg -si --noconfirm
+        
+        pacman -U *.pkg.* --noconfirm
+        

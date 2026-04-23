@@ -14,10 +14,11 @@ jobs:
     container:
       image: archlinux:latest
     steps:
-      - name: Update and install dependencies
-        run: |
-          pacman -Syu --noconfirm
-          pacman -S --noconfirm base-devel sudo git cargo rustup
+      - name: Install system dependencies
+        uses: ./.github/actions/install-system-dependencies
+        with:
+          distro: arch
+      
 
       - name: Checkout main
         uses: actions/checkout@v5

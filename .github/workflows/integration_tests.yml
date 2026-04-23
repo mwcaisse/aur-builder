@@ -11,16 +11,22 @@ jobs:
   build_publish:
     name: Integration Tests
     runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
     steps:
+      - name: Install system dependencies
+        uses: ./.github/actions/install-system-dependencies
+        with:
+          distro: arch
+
+      - name: Build and install aur-utils
+        uses: ./.github/actions/install-aur-utils
+
       - name: Checkout main
         uses: actions/checkout@v5
 
       - name: Output version of rust being used
         run: rustup --version
 
-      - name: Install system dependencies
-        uses: ./.github/actions/install-system-dependencies
-
-      # TODO: This need to run on an archlinux container with  aur-utils installed
       - name: Run integration tests
         run: cargo test --test '*'

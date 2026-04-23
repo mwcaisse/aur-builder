@@ -1,9 +1,31 @@
 name: Install system dependencies
-description: Install the system dependencies required by the project on Ubuntu
+description: Install the system dependencies required by the project
+inputs:
+  distro:
+    description: The distro to install dependencies for (arch | ubuntu)
+    required: true
+    default: ubuntu
 runs:
   using: composite
   steps:
-    - shell: bash
-      run: sudo apt-get update -y
-    - shell: bash
-      run: sudo apt install -y clang llvm pkg-config nettle-dev
+    - name: Validate distro input
+      shell: bash
+      run: |
+        case "${{ inputs.distro }}" in
+          ubuntu|arch) ;;
+          *) echo "Unsupported distro: ${{ inputs.distro }}"; exit 1 ;;
+        esac
+
+    - name: Install dependencies (Ubuntu)
+      shell: bash
+      if: ${{ inputs.distro == 'ubuntu' }}
+      run: |
+        sudo apt-get update -y
+        sudo apt install -y clang llvm pkg-config nettle-dev
+
+    - name: Install dependencies (Arch)
+      shell: bash
+      if: ${{ inputs.distro == 'arch' }}
+      run: |
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm base-devel sudo git cargo rustup
