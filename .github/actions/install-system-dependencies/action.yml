@@ -29,3 +29,6 @@ runs:
       run: |
         pacman -Syu --noconfirm
         pacman -S --noconfirm base-devel sudo git cargo rustup
+        
+        # configure rustup
+        rustup default stable
