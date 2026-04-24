@@ -28,7 +28,8 @@ build() {
 
 check() {
     export RUSTUP_TOOLCHAIN=stable
-    cargo test --frozen --all-features
+    # Only run unit tests
+    cargo test --bin aur-builder --frozen --all-features
 }
 
 package() {

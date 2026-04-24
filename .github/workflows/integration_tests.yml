@@ -1,6 +1,5 @@
-name: Build Package
+name: Integration Tests
 on:
-  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -8,8 +7,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_package:
-    name: Build Package
+  build_publish:
+    name: Integration Tests
     runs-on: ubuntu-latest
     container:
       image: archlinux:latest
@@ -28,13 +27,18 @@ jobs:
         with:
           distro: arch
 
-      - name: Create build user
+      - name: Build and install aur-utils
+        uses: ./.github/actions/install-aur-utils
+
+      - name: Output version of rust being used
+        run: rustup --version
+
+      - name: Install and configure docker
+        shell: bash
         run: |
-          useradd -m build
-          echo 'build ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/build
-          chmod 0440 /etc/sudoers.d/build
-          chown -R build:build .
+          pacman -S docker --noconfirm
+          
+          docker info
 
-      - name: Build package
-        run: sudo -u build makepkg -s --skipinteg --noconfirm
-
+      - name: Run integration tests
+        run: cargo test --test '*'
