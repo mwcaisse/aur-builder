@@ -21,14 +21,14 @@ runs:
       if: ${{ inputs.distro == 'ubuntu' }}
       run: |
         sudo apt-get update -y
-        sudo apt install -y clang llvm pkg-config nettle-dev
+        sudo apt install -y clang llvm pkg-config
 
     - name: Install dependencies (Arch)
       shell: bash
       if: ${{ inputs.distro == 'arch' }}
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm base-devel sudo git cargo rustup clang nettle
+        pacman -S --noconfirm base-devel sudo git cargo rustup clang
         
         # configure rustup
         rustup default stable

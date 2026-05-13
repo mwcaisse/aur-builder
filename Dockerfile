@@ -1,7 +1,7 @@
 FROM archlinux:latest AS build
 
 RUN pacman -Syu --noconfirm
-RUN pacman -S --noconfirm base-devel sudo git cargo clang nettle
+RUN pacman -S --noconfirm base-devel sudo git cargo clang
 
 WORKDIR /build/
 
