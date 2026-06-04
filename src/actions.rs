@@ -157,10 +157,16 @@ fn get_orphaned_packages(config: &Config) -> Vec<String> {
 }
 
 fn create_repository_file_path(config: &Config) -> String {
-    let mut path = PathBuf::from(config.repository.path.as_str());
-    // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
-    path.push(format!("{}.db.tar.xz", config.repository.name.as_str()));
+    create_repository_file_path_from_path_name(
+        config.repository.path.as_str(),
+        config.repository.name.as_str(),
+    )
+}
 
+pub fn create_repository_file_path_from_path_name(directory: &str, name: &str) -> String {
+    let mut path = PathBuf::from(directory);
+    // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
+    path.push(format!("{}.db.tar.xz", name));
     return path.to_string_lossy().to_string();
 }
 

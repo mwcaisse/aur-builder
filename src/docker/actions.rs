@@ -3,6 +3,7 @@ use crate::docker::common_actions::{
     take_ownership_of_directory, trust_additional_keys, update_system_packages,
 };
 use crate::docker::config::DockerConfig;
+use crate::docker::custom_packages::{rebuild_all_custom_packages, update_custom_packages};
 use std::process::Command;
 
 const BUILD_USER: &str = "build";
@@ -37,16 +38,6 @@ pub fn run_update_packages(config: &DockerConfig) {
     println!("Finished syncing packages! with status: {}", command_status);
 }
 
-fn update_custom_packages(config: &DockerConfig) {
-    // TODO: Implement this
-    // This will be used to update the custom packages listed in config
-
-    // to build a custom package, we need to:
-    //  clone the repo
-    //  run makepkg -s
-    // add the resulting package to the repo
-}
-
 pub fn run_rebuild_all_packages(config: &DockerConfig) {
     setup_image_for_building_packages(config);
 
@@ -56,6 +47,8 @@ pub fn run_rebuild_all_packages(config: &DockerConfig) {
     let command_status = sync_command
         .status()
         .expect("Failed to rebuild all packages");
+
+    rebuild_all_custom_packages(config);
 
     println!(
         "Finished rebuilding all packages! with status: {}",
