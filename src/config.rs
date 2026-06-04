@@ -1,4 +1,5 @@
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NonEmptyString(String);
@@ -50,6 +51,9 @@ pub struct Config {
 
     #[serde(default)]
     pub additional_trusted_keys: Vec<NonEmptyString>,
+
+    #[serde(default)]
+    pub custom_packages: HashMap<String, NonEmptyString>,
 }
 
 #[derive(Deserialize)]

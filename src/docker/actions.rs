@@ -32,7 +32,19 @@ pub fn run_update_packages(config: &DockerConfig) {
 
     let command_status = sync_command.status().expect("Failed to sync packages");
 
+    update_custom_packages(config);
+
     println!("Finished syncing packages! with status: {}", command_status);
+}
+
+fn update_custom_packages(config: &DockerConfig) {
+    // TODO: Implement this
+    // This will be used to update the custom packages listed in config
+
+    // to build a custom package, we need to:
+    //  clone the repo
+    //  run makepkg -s
+    // add the resulting package to the repo
 }
 
 pub fn run_rebuild_all_packages(config: &DockerConfig) {

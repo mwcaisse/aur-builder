@@ -1,11 +1,13 @@
 use crate::config::NonEmptyString;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Deserialize, Serialize)]
 pub struct DockerConfig {
     pub repository: Repository,
     pub signing: Signing,
     pub additional_trusted_keys: Vec<NonEmptyString>,
+    pub custom_packages: HashMap<String, NonEmptyString>,
 }
 
 #[derive(Deserialize, Serialize)]

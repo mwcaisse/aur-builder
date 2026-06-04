@@ -1,3 +1,4 @@
+use crate::config::Config;
 use flate2::read::GzDecoder;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -39,6 +40,15 @@ pub fn get_packages_from_arch_database(path_to_database: &str) -> Vec<Package> {
     }
 
     packages
+}
+
+pub fn get_aur_and_custom_packages(config: &Config) -> HashSet<String> {
+    let custom_packages = get_packages_from_config(config);
+    let aur_packages = get_all_aur_packages();
+    custom_packages.union(&aur_packages).cloned().collect()
+}
+pub fn get_packages_from_config(config: &Config) -> HashSet<String> {
+    config.custom_packages.keys().cloned().collect()
 }
 
 pub fn get_all_aur_packages() -> HashSet<String> {

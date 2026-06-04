@@ -18,3 +18,6 @@ enabled = false
 # key_path = ""
 # Path to the public key to use for signing packages, required if signing is enabled
 # public_key_path = ""
+
+[custom_packages]
+"yubikey-full-disk-encryption-git" = "git@github.com:mwcaisse/yubikey-full-disk-encryption-git-aur.git"
