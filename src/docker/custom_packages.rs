@@ -6,7 +6,13 @@ use std::process::Command;
 use tempfile::TempDir;
 
 pub fn update_custom_packages(config: &DockerConfig) {
+    println!("Updating custom packages");
     for (package_name, package_repo) in &config.custom_packages {
+        println!(
+            "Updating package: {} from repository: {}",
+            package_name,
+            package_repo.as_str()
+        );
         update_package(package_name.as_str(), package_repo.as_str(), config);
     }
 }
