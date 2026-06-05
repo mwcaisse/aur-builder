@@ -1,17 +1,14 @@
 use crate::actions::create_repository_file_path_from_path_name;
 use crate::docker::config::DockerConfig;
 use crate::package_parser;
+use std::path::PathBuf;
 use std::process::Command;
 use tempfile::TempDir;
 
 pub fn update_custom_packages(config: &DockerConfig) {
-    // TODO: Implement this
-    // This will be used to update the custom packages listed in config
-
-    // to build a custom package, we need to:
-    //  clone the repo
-    //  run makepkg -s
-    // add the resulting package to the repo
+    for (package_name, package_repo) in &config.custom_packages {
+        update_package(package_name.as_str(), package_repo.as_str(), config);
+    }
 }
 
 pub fn rebuild_all_custom_packages(config: &DockerConfig) {
@@ -37,8 +34,14 @@ fn update_package(package_name: &str, package_repository: &str, config: &DockerC
         return;
     }
 
-    // build the package
-    // add the package to the repository
+    let package_files = build_package(working_dir_path, config).unwrap();
+
+    add_package_files_to_repo(
+        working_dir_path,
+        &package_files,
+        config.repository.path.as_str(),
+        repo_path.as_str(),
+    );
 }
 
 /// Clones the given repository into the given directory
@@ -112,4 +115,62 @@ fn run_ver_cmp(ver1: &str, ver2: &str) -> Result<i32, &'static str> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let number: i32 = stdout.trim().parse().unwrap();
     Ok(number)
+}
+
+/// Builds the package in the given directory
+fn build_package(
+    package_directory: &str,
+    config: &DockerConfig,
+) -> Result<Vec<String>, &'static str> {
+    let mut command = Command::new("makepkg");
+
+    command.current_dir(package_directory);
+    command.arg("--clean");
+    command.arg("--syncdeps");
+
+    if config.signing.enabled {
+        command.arg("--sign");
+    }
+
+    command.status().expect("Failed to execute makepkg command");
+
+    let mut package_files_command = Command::new("makepkg");
+    package_files_command.current_dir(package_directory);
+    package_files_command.arg("--packagelist");
+
+    let output = package_files_command
+        .output()
+        .expect("Failed to execute makepkg command");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let package_files: Vec<String> = stdout.lines().map(|line| line.to_string()).collect();
+    Ok(package_files)
+}
+
+fn add_package_files_to_repo(
+    package_directory: &str,
+    package_files: &Vec<String>,
+    repo_directory: &str,
+    repo_db_path: &str,
+) {
+    for package_file in package_files {
+        let mut package_source_path = PathBuf::from(package_directory);
+        package_source_path.push(package_file);
+
+        let package_path = format!("{}/{}", repo_directory, package_file);
+        let result = std::fs::copy(
+            package_source_path.to_string_lossy().to_string(),
+            package_path.as_str(),
+        );
+        if result.is_err() {
+            eprintln!("Failed to copy package file: {}", package_file);
+        }
+
+        // now we need to add the package to the database
+        let mut add_package_command = Command::new("repo-add");
+        add_package_command.arg(repo_db_path);
+        add_package_command.arg(package_path.as_str());
+        add_package_command
+            .status()
+            .expect("Failed to add package to repository");
+    }
 }
