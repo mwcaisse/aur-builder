@@ -3,12 +3,9 @@ use crate::docker::common_actions::{
     take_ownership_of_directory, trust_additional_keys, update_system_packages,
 };
 use crate::docker::config::DockerConfig;
+use crate::docker::constants::{BUILD_USER, WORKING_DIR};
 use crate::docker::custom_packages::{rebuild_all_custom_packages, update_custom_packages};
 use std::process::Command;
-
-const BUILD_USER: &str = "build";
-
-const WORKING_DIR: &str = "/working-dir";
 
 pub fn run_add_packages(config: &DockerConfig, packages: &[&str]) {
     setup_image_for_building_packages(config);

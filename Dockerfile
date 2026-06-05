@@ -68,5 +68,11 @@ COPY --from=build /build/target/release/aur-builder /opt/aur-builder/aur-builder
 RUN chmod a+x /opt/aur-builder/aur-builder
 RUN ln -s /opt/aur-builder/aur-builder /usr/bin/aur-builder
 
+USER build
+RUN mkdir -p ~/.ssh
+RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+USER root
+
 ENTRYPOINT ["/opt/aur-builder/aur-builder"]
 CMD ["docker", "--help"]

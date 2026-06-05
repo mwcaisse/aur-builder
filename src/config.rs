@@ -235,4 +235,38 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
 
         assert!(config_result.is_err());
     }
+
+    const CUSTOM_PACKAGES_CONFIG: &str = r#"
+    [repository]
+    name = "mitchell-aur"
+    path = "/etc/aur-builder/tmp-repo/"
+
+    [custom_packages]
+    "yubikey-full-disk-encryption-git" = "git@github.com:mwcaisse/yubikey-full-disk-encryption-git-aur.git"
+    "aur-builder-git" = "git@github.com:mwcaisse/aur-builder-git-aur.git"
+
+    "#;
+
+    #[test]
+    fn test_can_parse_config_with_custom_packages() {
+        let config: Config = read_config_from_str(CUSTOM_PACKAGES_CONFIG);
+
+        assert_eq!(config.custom_packages.len(), 2);
+        assert_eq!(
+            config
+                .custom_packages
+                .get("yubikey-full-disk-encryption-git")
+                .unwrap()
+                .as_str(),
+            "git@github.com:mwcaisse/yubikey-full-disk-encryption-git-aur.git"
+        );
+        assert_eq!(
+            config
+                .custom_packages
+                .get("aur-builder-git")
+                .unwrap()
+                .as_str(),
+            "git@github.com:mwcaisse/aur-builder-git-aur.git"
+        );
+    }
 }

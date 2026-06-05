@@ -103,3 +103,13 @@ fn write_text_to_end_of_file(file_path: &str, text: &str) {
     file.write_all(text.as_bytes())
         .expect(format!("Failed to write to file: {}", file_path).as_str());
 }
+
+pub fn command_as_user(command: &str, user: &str) -> Command {
+    let mut cmd = Command::new("sudo");
+    cmd.arg("-u").arg(user).arg(command);
+    cmd
+}
+
+pub fn command_as_build_user(command: &str) -> Command {
+    command_as_user(command, "build")
+}

@@ -20,4 +20,4 @@ enabled = false
 # public_key_path = ""
 
 [custom_packages]
-"yubikey-full-disk-encryption-git" = "git@github.com:mwcaisse/yubikey-full-disk-encryption-git-aur.git"
+"yubikey-full-disk-encryption-git" = "https://github.com/mwcaisse/yubikey-full-disk-encryption-git-aur.git"
