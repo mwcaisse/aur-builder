@@ -1,12 +1,15 @@
 use crate::config::{Config, NonEmptyString};
 use crate::docker::commands::DEFAULT_DOCKER_CONFIG_PATH;
-use crate::docker::config::{write_docker_config_to_file, DockerConfig, Repository, Signing};
+use crate::docker::config::{DockerConfig, Repository, Signing, write_docker_config_to_file};
 use crate::package_parser;
+use crate::package_parser::Package;
 use crate::pgp_utils::get_key_id_from_private_key_file;
+use colored::*;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use tempfile::NamedTempFile;
+
 
 pub fn run_clean(config: Config, to_keep: u32) {
     println!(
@@ -303,4 +306,30 @@ fn add_mount_arg(command: &mut Command, source: &str, destination: &str) {
         "--mount",
         format!("type=bind,source={},destination={}", source, destination).as_str(),
     ]);
+}
+
+pub fn list(config: &Config) {
+    let repo_path = create_repository_file_path(config);
+    let repo_packages = package_parser::get_packages_from_arch_database(&repo_path);
+
+    println!("\n\n");
+    print_list_of_packages(repo_packages.iter())
+}
+pub fn search(config: &Config, search_term: &str) {
+    let repo_path = create_repository_file_path(config);
+    let repo_packages = package_parser::get_packages_from_arch_database(&repo_path);
+
+    let filtered_packages = repo_packages.iter().filter(|p| p.name.contains(search_term));
+
+    println!("\n\n");
+    print_list_of_packages(filtered_packages);
+}
+
+fn print_list_of_packages<'a>(packages: impl Iterator<Item=&'a Package>) {
+    for package in packages {
+        println!("{} {}", package.name.bold(), package.version.blue());
+        if let Some(description) = &package.description {
+            println!("\t{}", description);
+        }
+    }
 }

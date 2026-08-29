@@ -8,7 +8,7 @@ mod pgp_utils;
 #[cfg(test)]
 mod test_utils;
 
-use clap::{arg, command, value_parser, Command};
+use clap::{Command, arg, command, value_parser};
 use std::path::PathBuf;
 use std::process::exit;
 
@@ -51,6 +51,17 @@ fn main() {
         .subcommand(
             Command::new("update")
                 .about("Updates the packages that have new versions")
+        )
+        .subcommand(
+            Command::new("list")
+                .about("Lists all of the packages in the repository")
+        )
+        .subcommand(
+            Command::new("search")
+                .about("Searches for packages in the repository")
+                .arg(
+                    arg!([TERM] "Term to search for, will return packages(s) which name contains the term")
+                )
         )
         .subcommand(
             Command::new("clean")
@@ -126,6 +137,15 @@ fn main() {
     } else if let Some(clean_matches) = matches.subcommand_matches("clean") {
         let to_keep = clean_matches.get_one::<u32>("NUM").copied().unwrap_or(2);
         actions::run_clean(config, to_keep);
+    } else if let Some(_matches) = matches.subcommand_matches("list") {
+        actions::list(&config);
+    } else if let Some(search_matches) = matches.subcommand_matches("search") {
+        if let Some(term) = search_matches.get_one::<String>("TERM") {
+            actions::search(&config, term);
+        } else {
+            println!("Must specify a search term!");
+            exit(1);
+        }
     } else {
         println!("Currently not implemented!");
         exit(1);
