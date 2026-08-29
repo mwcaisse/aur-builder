@@ -10,7 +10,7 @@ use xz::read::XzDecoder;
 pub struct Package {
     pub name: String,
     pub version: String,
-    pub file_name: String,
+    pub description: Option<String>,
 }
 
 /// Gets a list of packages from the Arch database in the given file
@@ -75,12 +75,7 @@ fn parse_package_from_desc_contents(contents: &str) -> Result<Package, &str> {
             .first()
             .unwrap()
             .clone(),
-        file_name: fields
-            .get("FILENAME")
-            .unwrap_or(&Vec::new())
-            .first()
-            .unwrap()
-            .clone(),
+        description: fields.get("DESC").map(|v| v.first().unwrap().clone()),
     })
 }
 
@@ -131,6 +126,10 @@ bitwarden-bin
 %VERSION%
 2026.3.1-1
 
+%DESC%
+Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.
+
+
 ";
 
     #[test]
@@ -141,15 +140,17 @@ bitwarden-bin
 
         let fields = results.unwrap();
 
-        assert_eq!(fields.len(), 3);
+        assert_eq!(fields.len(), 4);
 
         assert!(fields.contains_key("NAME"));
         assert!(fields.contains_key("FILENAME"));
         assert!(fields.contains_key("VERSION"));
+        assert!(fields.contains_key("DESC"));
 
         assert_eq!(fields.get("NAME").unwrap().len(), 1);
         assert_eq!(fields.get("FILENAME").unwrap().len(), 1);
         assert_eq!(fields.get("VERSION").unwrap().len(), 1);
+        assert_eq!(fields.get("DESC").unwrap().len(), 1);
 
         assert_eq!(fields.get("NAME").unwrap()[0], "bitwarden-bin");
         assert_eq!(
@@ -157,6 +158,7 @@ bitwarden-bin
             "bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst"
         );
         assert_eq!(fields.get("VERSION").unwrap()[0], "2026.3.1-1");
+        assert_eq!(fields.get("DESC").unwrap()[0], "Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.");
     }
 
     const MULTILINE_DESC_CONTENTS: &str = "%DEPENDS%
@@ -210,9 +212,5 @@ yarn";
         let package = results.unwrap();
         assert_eq!(package.name, "bitwarden-bin");
         assert_eq!(package.version, "2026.3.1-1");
-        assert_eq!(
-            package.file_name,
-            "bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst"
-        );
     }
 }

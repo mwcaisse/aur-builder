@@ -11,6 +11,7 @@ license = "MIT"
 
 [dependencies]
 clap = { version = "4.6.0", features = ["cargo"] }
+colored = "3.1.1"
 flate2 = "1.1.9"
 reqwest = { version = "0.13.2", default-features = false, features = ["blocking", "native-tls"] }
 sequoia-openpgp = { version = "2.2.0", default-features = false, features = ["crypto-openssl"] }
