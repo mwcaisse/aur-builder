@@ -5,6 +5,8 @@ mod error;
 mod package_parser;
 mod pgp_utils;
 
+mod file_utils;
+
 #[cfg(test)]
 mod test_utils;
 
@@ -46,7 +48,10 @@ fn main() {
         )
         .subcommand(
             Command::new("rebuild")
-                .about("Rebuilds all of the packages in the repository")
+                .about("Rebuilds the given package(s) or all packages in the repository")
+                .arg(
+                    arg!([PACKAGE] ... "Package(s) to rebuild").num_args(1..)
+                )
         )
         .subcommand(
             Command::new("update")
@@ -62,6 +67,10 @@ fn main() {
                 .arg(
                     arg!([TERM] "Term to search for, will return packages(s) which name contains the term")
                 )
+        )
+        .subcommand(
+            Command::new("validate")
+                .about("Ensures all of the packages in the repository have a valid checksum. If not prompts to re-built them")
         )
         .subcommand(
             Command::new("clean")
@@ -113,7 +122,7 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("add") {
         if let Some(names) = matches.get_many::<String>("PACKAGE") {
             let package_names = names.map(String::as_str).collect::<Vec<_>>();
-            actions::run_add_packages(config, &package_names);
+            actions::run_add_packages(&config, &package_names);
         } else {
             println!("Must specify at least one package to add!");
             exit(1);
@@ -129,9 +138,14 @@ fn main() {
     } else if let Some(_matches) = matches.subcommand_matches("create") {
         actions::run_create_repo(&config);
     } else if let Some(_matches) = matches.subcommand_matches("update") {
-        actions::run_update(config);
-    } else if let Some(_matches) = matches.subcommand_matches("rebuild") {
-        actions::run_rebuild_all(config);
+        actions::run_update(&config);
+    } else if let Some(rebuild_matches) = matches.subcommand_matches("rebuild") {
+        if let Some(names) = rebuild_matches.get_many::<String>("PACKAGE") {
+            let package_names = names.map(String::as_str).collect::<Vec<_>>();
+            actions::run_rebuild(&config, &package_names);
+        } else {
+            actions::run_rebuild_all(&config);
+        }
     } else if let Some(_matches) = matches.subcommand_matches("remove-orphaned") {
         actions::run_remove_orphans(&config);
     } else if let Some(clean_matches) = matches.subcommand_matches("clean") {
@@ -146,6 +160,8 @@ fn main() {
             println!("Must specify a search term!");
             exit(1);
         }
+    } else if let Some(_matches) = matches.subcommand_matches("validate") {
+        actions::validate(&config);
     } else {
         println!("Currently not implemented!");
         exit(1);

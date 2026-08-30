@@ -51,6 +51,26 @@ pub fn run_rebuild_all_packages(config: &DockerConfig) {
     );
 }
 
+pub fn run_rebuild_packages(config: &DockerConfig, packages: &[&str]) {
+    setup_image_for_building_packages(config);
+
+    let mut sync_command = create_base_aur_sync_command(config);
+    sync_command.arg("-f");
+
+    for package in packages {
+        sync_command.arg(package);
+    }
+
+    let command_status = sync_command
+        .status()
+        .expect("Failed to rebuild packages");
+
+    println!(
+        "Finished rebuilding packages! with status: {}",
+        command_status
+    );
+}
+
 /// Creates the base sync command, i.e. the call to `aur sync` that will be used to add, update, and rebuild packages
 fn create_base_aur_sync_command(config: &DockerConfig) -> Command {
     let mut sync_command = Command::new("sudo");

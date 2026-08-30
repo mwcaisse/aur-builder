@@ -10,6 +10,8 @@ use xz::read::XzDecoder;
 pub struct Package {
     pub name: String,
     pub version: String,
+    pub file_name: String,
+    pub sha_256_checksum: String,
     pub description: Option<String>,
 }
 
@@ -71,6 +73,18 @@ fn parse_package_from_desc_contents(contents: &str) -> Result<Package, &str> {
             .clone(),
         version: fields
             .get("VERSION")
+            .unwrap_or(&Vec::new())
+            .first()
+            .unwrap()
+            .clone(),
+        file_name: fields
+            .get("FILENAME")
+            .unwrap_or(&Vec::new())
+            .first()
+            .unwrap()
+            .clone(),
+        sha_256_checksum: fields
+            .get("SHA256SUM")
             .unwrap_or(&Vec::new())
             .first()
             .unwrap()
