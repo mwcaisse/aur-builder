@@ -55,7 +55,8 @@ pub fn run_rebuild_packages(config: &DockerConfig, packages: &[&str]) {
     setup_image_for_building_packages(config);
 
     let mut sync_command = create_base_aur_sync_command(config);
-    sync_command.arg("-f");
+    // --rebuild-tree could also work? it will rebuild the package and all its dependencies
+    sync_command.arg("--rebuild");
 
     for package in packages {
         sync_command.arg(package);
