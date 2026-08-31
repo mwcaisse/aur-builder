@@ -8,7 +8,7 @@ use crate::pgp_utils::get_key_id_from_private_key_file;
 use colored::*;
 use std::io::{self, Write};
 use std::path::PathBuf;
-use std::process::{Command, ExitStatus, exit};
+use std::process::{Command, ExitStatus};
 use tempfile::NamedTempFile;
 
 pub fn run_clean(config: Config, to_keep: u32) {
@@ -357,7 +357,7 @@ pub fn validate(config: &Config) {
 
     if invalid_packages.len() == 0 {
         println!("All packages have valid checksums");
-        exit(0);
+        return;
     }
 
     println!("The following packages have invalid checksums:");
@@ -384,8 +384,5 @@ fn validate_package_checksum(package: &Package, repo_directory: &str) -> bool {
 
     let hash = sha256_hash_file(&package_file_path);
 
-    println!("File hash: {} expected: {}", hash, package.sha_256_checksum);
-
-    //hash.eq_ignore_ascii_case(&package.sha_256_checksum)
-    false
+    hash.eq_ignore_ascii_case(&package.sha_256_checksum)
 }

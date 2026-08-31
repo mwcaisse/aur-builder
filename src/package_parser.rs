@@ -140,6 +140,9 @@ bitwarden-bin
 %VERSION%
 2026.3.1-1
 
+%SHA256SUM%
+8c2085e1d306d423d34cb10ec968f52555874a4af5e5eabd2b3ab1bf9e0d4cfd
+
 %DESC%
 Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.
 
@@ -154,16 +157,18 @@ Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.
 
         let fields = results.unwrap();
 
-        assert_eq!(fields.len(), 4);
+        assert_eq!(fields.len(), 5);
 
         assert!(fields.contains_key("NAME"));
         assert!(fields.contains_key("FILENAME"));
         assert!(fields.contains_key("VERSION"));
+        assert!(fields.contains_key("SHA256SUM"));
         assert!(fields.contains_key("DESC"));
 
         assert_eq!(fields.get("NAME").unwrap().len(), 1);
         assert_eq!(fields.get("FILENAME").unwrap().len(), 1);
         assert_eq!(fields.get("VERSION").unwrap().len(), 1);
+        assert_eq!(fields.get("SHA256SUM").unwrap().len(), 1);
         assert_eq!(fields.get("DESC").unwrap().len(), 1);
 
         assert_eq!(fields.get("NAME").unwrap()[0], "bitwarden-bin");
@@ -172,6 +177,10 @@ Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.
             "bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst"
         );
         assert_eq!(fields.get("VERSION").unwrap()[0], "2026.3.1-1");
+        assert_eq!(
+            fields.get("SHA256SUM").unwrap()[0],
+            "8c2085e1d306d423d34cb10ec968f52555874a4af5e5eabd2b3ab1bf9e0d4cfd"
+        );
         assert_eq!(fields.get("DESC").unwrap()[0], "Yet another yogurt. Pacman wrapper and AUR helper written in go. Pre-compiled.");
     }
 
@@ -226,5 +235,13 @@ yarn";
         let package = results.unwrap();
         assert_eq!(package.name, "bitwarden-bin");
         assert_eq!(package.version, "2026.3.1-1");
+        assert_eq!(
+            package.file_name,
+            "bitwarden-bin-2026.3.1-1-x86_64.pkg.tar.zst"
+        );
+        assert_eq!(
+            package.sha_256_checksum,
+            "8c2085e1d306d423d34cb10ec968f52555874a4af5e5eabd2b3ab1bf9e0d4cfd"
+        );
     }
 }
