@@ -144,7 +144,7 @@ pub fn run_remove_orphans(config: &Config) {
 fn get_orphaned_packages(config: &Config) -> Vec<String> {
     let repo_path = create_repository_file_path(config);
     let our_packages = package_parser::get_packages_from_arch_database(&repo_path);
-    let aur_packages = package_parser::get_all_aur_packages();
+    let aur_packages = package_parser::get_aur_and_custom_packages(config);
 
     let mut orphaned_packages: Vec<String> = Vec::new();
     for package in our_packages {
@@ -160,10 +160,16 @@ fn get_orphaned_packages(config: &Config) -> Vec<String> {
 }
 
 fn create_repository_file_path(config: &Config) -> String {
-    let mut path = PathBuf::from(config.repository.path.as_str());
-    // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
-    path.push(format!("{}.db.tar.xz", config.repository.name.as_str()));
+    create_repository_file_path_from_path_name(
+        config.repository.path.as_str(),
+        config.repository.name.as_str(),
+    )
+}
 
+pub fn create_repository_file_path_from_path_name(directory: &str, name: &str) -> String {
+    let mut path = PathBuf::from(directory);
+    // TODO: Probably need to handle different database archive extensions (not just assume .db.tar.xz)
+    path.push(format!("{}.db.tar.xz", name));
     return path.to_string_lossy().to_string();
 }
 
@@ -227,6 +233,7 @@ fn create_docker_image_config(
             public_key_path: signing_public_key_mount_path.map(NonEmptyString::from_known_str),
         },
         additional_trusted_keys: config.additional_trusted_keys.clone(),
+        custom_packages: config.custom_packages.clone(),
     }
 }
 fn run_docker_image(config: &Config, aur_builder_command: &[&str]) -> ExitStatus {
