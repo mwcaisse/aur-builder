@@ -1,6 +1,6 @@
-use crate::docker::actions::{run_add_packages, run_rebuild_all_packages, run_update_packages};
+use crate::docker::actions::{run_add_packages, run_rebuild_all_packages, run_rebuild_packages, run_update_packages};
 use crate::docker::config::read_docker_config;
-use clap::{arg, Command};
+use clap::{Command, arg};
 use std::path::PathBuf;
 use std::process::exit;
 
@@ -13,7 +13,11 @@ pub fn get_docker_commands() -> Command {
                 .arg(arg!([PACKAGE] ... "Package(s) to add to the repository").num_args(1..)),
         )
         .subcommand(Command::new("update").about("Updates the packages that have new versions"))
-        .subcommand(Command::new("rebuild").about("Rebuilds all of the packages in the repository"))
+        .subcommand(
+            Command::new("rebuild")
+                .about("Rebuilds all of the packages in the repository")
+                .arg(arg!([PACKAGE] ... "Package(s) to rebuild").num_args(1..)),
+        )
 }
 
 pub const DEFAULT_DOCKER_CONFIG_PATH: &str = "/opt/aur-builder/config.toml";
@@ -39,10 +43,15 @@ pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
         } else if let Some(_docker_subcommand_matches) = docker_matches.subcommand_matches("update")
         {
             run_update_packages(&config);
-        } else if let Some(_docker_subcommand_matches) =
+        } else if let Some(docker_subcommand_matches) =
             docker_matches.subcommand_matches("rebuild")
         {
-            run_rebuild_all_packages(&config);
+            if let Some(names) = docker_subcommand_matches.get_many::<String>("PACKAGE") {
+                let package_names = names.map(String::as_str).collect::<Vec<_>>();
+                run_rebuild_packages(&config, &package_names);
+            } else {
+                run_rebuild_all_packages(&config);
+            }
         } else {
             println!("Unknown docker subcommand!");
             exit(1)
@@ -51,5 +60,5 @@ pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
         return true;
     }
 
-    return false;
+    false
 }

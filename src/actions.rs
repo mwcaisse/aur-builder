@@ -1,6 +1,7 @@
 use crate::config::{Config, NonEmptyString};
 use crate::docker::commands::DEFAULT_DOCKER_CONFIG_PATH;
 use crate::docker::config::{DockerConfig, Repository, Signing, write_docker_config_to_file};
+use crate::file_utils::sha256_hash_file;
 use crate::package_parser;
 use crate::package_parser::Package;
 use crate::pgp_utils::get_key_id_from_private_key_file;
@@ -9,7 +10,6 @@ use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, ExitStatus};
 use tempfile::NamedTempFile;
-
 
 pub fn run_clean(config: Config, to_keep: u32) {
     println!(
@@ -167,7 +167,7 @@ fn create_repository_file_path(config: &Config) -> String {
     return path.to_string_lossy().to_string();
 }
 
-pub fn run_add_packages(config: Config, packages: &[&str]) {
+pub fn run_add_packages(config: &Config, packages: &[&str]) {
     println!("Adding the following packages: {:?}", packages);
 
     let mut aur_builder_command = vec!["docker", "add"];
@@ -177,7 +177,7 @@ pub fn run_add_packages(config: Config, packages: &[&str]) {
     println!("Finished adding packages! with status: {}", command_status);
 }
 
-pub fn run_update(config: Config) {
+pub fn run_update(config: &Config) {
     println!("Performing update on all packages!");
 
     let command_status = run_docker_image(config, &["docker", "update"][..]);
@@ -188,14 +188,24 @@ pub fn run_update(config: Config) {
     );
 }
 
-pub fn run_rebuild_all(config: Config) {
+pub fn run_rebuild_all(config: &Config) {
     println!("Performing rebuild on all packages!");
 
-    // Right now to re-build all packages, we pass a package with the name "rebuild" to the docker image
     let command_status = run_docker_image(config, &["docker", "rebuild"][..]);
 
     println!(
         "Finished rebuilding all packages! with status: {}",
+        command_status
+    );
+}
+
+pub fn run_rebuild(config: &Config, packages: &[&str]) {
+    let mut aur_builder_command = vec!["docker", "rebuild"];
+    aur_builder_command.extend_from_slice(packages);
+    let command_status = run_docker_image(config, &aur_builder_command);
+
+    println!(
+        "Finished rebuilding given packages! with status: {}",
         command_status
     );
 }
@@ -219,7 +229,7 @@ fn create_docker_image_config(
         additional_trusted_keys: config.additional_trusted_keys.clone(),
     }
 }
-fn run_docker_image(config: Config, aur_builder_command: &[&str]) -> ExitStatus {
+fn run_docker_image(config: &Config, aur_builder_command: &[&str]) -> ExitStatus {
     let docker_image = format!(
         "{}:{}",
         config.image.name.as_str(),
@@ -332,4 +342,43 @@ fn print_list_of_packages<'a>(packages: impl Iterator<Item=&'a Package>) {
             println!("\t{}", description);
         }
     }
+}
+
+pub fn validate(config: &Config) {
+    let repo_path = create_repository_file_path(config);
+    let repo_directory = config.repository.path.as_str();
+    let repo_packages = package_parser::get_packages_from_arch_database(&repo_path);
+
+    let invalid_packages = repo_packages.iter().filter(|p| !validate_package_checksum(p, &repo_directory)).collect::<Vec<_>>();
+
+    if invalid_packages.len() == 0 {
+        println!("All packages have valid checksums");
+        return;
+    }
+
+    println!("The following packages have invalid checksums:");
+    for package in invalid_packages.iter() {
+        println!("{} {}", package.name.bold(), package.version.blue());
+    }
+
+    print!("Proceed with rebuilding them? [Y/n] ");
+    io::stdout().flush().ok();
+    let mut input = String::new();
+    let read_result = io::stdin().read_line(&mut input);
+
+    if !read_result.is_ok() || input.trim().to_lowercase() != "y" {
+        return;
+    }
+
+    run_rebuild(config, invalid_packages.iter().map(|p| p.name.as_str()).collect::<Vec<_>>().as_slice());
+    println!("Rebuilt invalid packages!")
+}
+
+fn validate_package_checksum(package: &Package, repo_directory: &str) -> bool {
+    let mut package_file_path = PathBuf::from(repo_directory);
+    package_file_path.push(&package.file_name);
+
+    let hash = sha256_hash_file(&package_file_path);
+
+    hash.eq_ignore_ascii_case(&package.sha_256_checksum)
 }
