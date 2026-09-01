@@ -349,10 +349,6 @@ pub fn validate(config: &Config) {
     let repo_directory = config.repository.path.as_str();
     let repo_packages = package_parser::get_packages_from_arch_database(&repo_path);
 
-    // Validate will ensure that each package:
-    //  * Has the correct checksum
-    //  * Has the correct signature, if signing is enabled
-
     let invalid_packages = repo_packages.iter().filter(|p| !validate_package_checksum(p, &repo_directory)).collect::<Vec<_>>();
 
     if invalid_packages.len() == 0 {
@@ -375,7 +371,7 @@ pub fn validate(config: &Config) {
     }
 
     run_rebuild(config, invalid_packages.iter().map(|p| p.name.as_str()).collect::<Vec<_>>().as_slice());
-    println!("Rebuild invalid packages!")
+    println!("Rebuilt invalid packages!")
 }
 
 fn validate_package_checksum(package: &Package, repo_directory: &str) -> bool {

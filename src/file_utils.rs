@@ -5,7 +5,6 @@ use std::io::Read;
 use std::path::Path;
 
 pub fn sha256_hash_file(file_path: &Path) -> String {
-    println!("Hashing file: {}", file_path.display());
     let mut file = File::open(file_path).unwrap();
     let mut hasher = Sha256::new();
     let mut buffer = [0; 8192];

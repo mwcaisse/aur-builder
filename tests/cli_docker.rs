@@ -118,3 +118,60 @@ fn test_can_add_packages() {
     assert!(has_package(repo_dir.path(), "yay-bin"));
     assert!(has_package(repo_dir.path(), "freetube-bin"));
 }
+
+#[test]
+fn test_can_validate_packages() {
+    let repo_dir = assert_fs::TempDir::new().unwrap();
+    let config_file = create_test_config_file_no_signing(
+        "ghcr.io/mwcaisse/aur-builder",
+        "latest",
+        repo_dir.path().to_str().unwrap(),
+    );
+    let config_path = config_file.path().to_str().unwrap();
+
+    let mut cmd = cargo_bin_cmd!("aur-builder");
+    cmd.arg("--config");
+    cmd.arg(config_path);
+    cmd.arg("create");
+
+    println!(
+        "stdout:\n{}",
+        String::from_utf8_lossy(&cmd.output().unwrap().stdout)
+    );
+    println!(
+        "stderr:\n{}",
+        String::from_utf8_lossy(&cmd.output().unwrap().stderr)
+    );
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Finished creating repository"))
+        .stdout(predicate::str::contains(" with status: exit status: 0"));
+
+    let mut add_packages_cmd = cargo_bin_cmd!("aur-builder");
+    add_packages_cmd.arg("--config");
+    add_packages_cmd.arg(config_path);
+    add_packages_cmd.arg("add");
+    add_packages_cmd.arg("yay-bin");
+    add_packages_cmd.arg("freetube-bin");
+
+    println!(
+        "stdout:\n{}",
+        String::from_utf8_lossy(&add_packages_cmd.output().unwrap().stdout)
+    );
+    println!(
+        "stderr:\n{}",
+        String::from_utf8_lossy(&add_packages_cmd.output().unwrap().stderr)
+    );
+
+    assert!(has_package(repo_dir.path(), "yay-bin"));
+    assert!(has_package(repo_dir.path(), "freetube-bin"));
+
+    let mut validate_packages_cmd = cargo_bin_cmd!("aur-builder");
+    validate_packages_cmd.arg("--config");
+    validate_packages_cmd.arg(config_path);
+    validate_packages_cmd.arg("validate");
+    validate_packages_cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("All packages have valid checksums"));
+}
