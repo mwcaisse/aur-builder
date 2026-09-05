@@ -1,3 +1,4 @@
+use anyhow::Context;
 use flate2::read::GzDecoder;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
@@ -19,81 +20,78 @@ pub struct Package {
 /// Assumes that the database in in tar.xz format
 /// TODO: Add support for other archive formats / determining format of the database file
 ///     Arch supports any archive format that is supported by `libarchive`
-pub fn get_packages_from_arch_database(path_to_database: &str) -> Vec<Package> {
-    //lets do our file operations
-    let file = File::open(path_to_database).unwrap();
+pub fn get_packages_from_arch_database(path_to_database: &str) -> anyhow::Result<Vec<Package>> {
+    let file = File::open(path_to_database)
+        .with_context(|| format!("Failed to open database file: {}", path_to_database))?;
     let tar_archive = XzDecoder::new(file);
     let mut archive = Archive::new(tar_archive);
 
     let mut packages: Vec<Package> = Vec::new();
 
-    for file in archive.entries().unwrap() {
-        let mut file = file.unwrap();
+    let entries = archive
+        .entries()
+        .context("Failed to read archive entries")?;
 
-        if file.header().entry_type().is_file()
-            && file.header().path().unwrap().file_name().unwrap() == "desc"
-        {
+    for file in entries {
+        let mut file = file.context("Failed to read archive entry")?;
+
+        let path = file
+            .header()
+            .path()
+            .context("Failed to get entry path")?;
+        let file_name = path
+            .file_name()
+            .context("Failed to get file name from entry path")?;
+
+        if file.header().entry_type().is_file() && file_name == "desc" {
             let mut file_contents = String::new();
-            file.read_to_string(&mut file_contents).unwrap();
-            let package_results = parse_package_from_desc_contents(&file_contents).unwrap();
-            packages.push(package_results);
+            file.read_to_string(&mut file_contents)
+                .context("Failed to read desc file contents")?;
+            let package = parse_package_from_desc_contents(&file_contents)?;
+            packages.push(package);
         }
     }
 
-    packages
+    Ok(packages)
 }
 
-pub fn get_all_aur_packages() -> HashSet<String> {
-    // TODO: so many unwraps here, should probably do some error handling
-    let resp = reqwest::blocking::get("https://aur.archlinux.org/packages.gz").unwrap();
+pub fn get_all_aur_packages() -> anyhow::Result<HashSet<String>> {
+    let resp = reqwest::blocking::get("https://aur.archlinux.org/packages.gz")
+        .context("Failed to fetch AUR package list")?;
 
     let mut gz = GzDecoder::new(resp);
     let mut contents = String::new();
-    gz.read_to_string(&mut contents).unwrap();
+    gz.read_to_string(&mut contents)
+        .context("Failed to read AUR package list")?;
 
-    let mut aur_packages: HashSet<String> = HashSet::new();
-    for line in contents.lines() {
-        aur_packages.insert(line.to_string());
-    }
+    let aur_packages: HashSet<String> = contents.lines().map(|l| l.to_string()).collect();
 
-    aur_packages
+    Ok(aur_packages)
 }
 
 /// Parses package metadata information from the contents of a package's `desc` file.
-fn parse_package_from_desc_contents(contents: &str) -> Result<Package, &str> {
-    let fields = parse_fields_from_desc_file(contents).expect("Failed to parse package desc file");
+fn parse_package_from_desc_contents(contents: &str) -> anyhow::Result<Package> {
+    let fields = parse_fields_from_desc_file(contents)
+        .map_err(|e| anyhow::anyhow!("Failed to parse package desc file: {}", e))?;
 
-    // TODO: fill this out, but this satisfies the compiler for now
     Ok(Package {
-        name: fields
-            .get("NAME")
-            .unwrap_or(&Vec::new())
-            .first()
-            .unwrap()
-            .clone(),
-        version: fields
-            .get("VERSION")
-            .unwrap_or(&Vec::new())
-            .first()
-            .unwrap()
-            .clone(),
-        file_name: fields
-            .get("FILENAME")
-            .unwrap_or(&Vec::new())
-            .first()
-            .unwrap()
-            .clone(),
-        sha_256_checksum: fields
-            .get("SHA256SUM")
-            .unwrap_or(&Vec::new())
-            .first()
-            .unwrap()
-            .clone(),
-        description: fields.get("DESC").map(|v| v.first().unwrap().clone()),
+        name: get_field_value(&fields, "NAME")?,
+        version: get_field_value(&fields, "VERSION")?,
+        file_name: get_field_value(&fields, "FILENAME")?,
+        sha_256_checksum: get_field_value(&fields, "SHA256SUM")?,
+        description: fields.get("DESC").and_then(|v: &Vec<String>| v.first().cloned()),
     })
 }
 
-fn parse_fields_from_desc_file(contents: &str) -> Result<HashMap<String, Vec<String>>, &str> {
+fn get_field_value(fields: &HashMap<String, Vec<String>>, field_name: &str) -> anyhow::Result<String> {
+    fields
+        .get(field_name)
+        .and_then(|v| v.first())
+        .cloned()
+        .with_context(|| format!("Missing required field '{}' in package desc file", field_name))
+}
+
+fn parse_fields_from_desc_file(contents: &str) -> Result<HashMap<String, Vec<String>>, String> {
     let mut fields: HashMap<String, Vec<String>> = HashMap::new();
     let mut current_field: Option<String> = None;
 
@@ -112,13 +110,14 @@ fn parse_fields_from_desc_file(contents: &str) -> Result<HashMap<String, Vec<Str
         // we have a value line, but no field, return an error
         if current_field.is_none() {
             return Err(
-                "Unable to process package desc file. Found a field value without a field name.",
+                "Unable to process package desc file. Found a field value without a field name.".to_string(),
             );
         }
 
         // add the value to the field
+        let field_name = current_field.as_ref().unwrap();
         fields
-            .entry(current_field.clone().unwrap())
+            .entry(field_name.clone())
             .or_default()
             .push(line.to_string());
     }

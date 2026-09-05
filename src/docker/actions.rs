@@ -2,6 +2,7 @@ use crate::docker::common_actions::{
     configure_package_signing, configure_pacman_conf, create_directory,
     take_ownership_of_directory, trust_additional_keys, update_system_packages,
 };
+use anyhow::Context;
 use crate::docker::config::DockerConfig;
 use std::process::Command;
 
@@ -9,8 +10,8 @@ const BUILD_USER: &str = "build";
 
 const WORKING_DIR: &str = "/working-dir";
 
-pub fn run_add_packages(config: &DockerConfig, packages: &[&str]) {
-    setup_image_for_building_packages(config);
+pub fn run_add_packages(config: &DockerConfig, packages: &[&str]) -> anyhow::Result<()> {
+    setup_image_for_building_packages(config)?;
 
     let mut sync_command = create_base_aur_sync_command(config);
 
@@ -18,44 +19,49 @@ pub fn run_add_packages(config: &DockerConfig, packages: &[&str]) {
         sync_command.arg(package);
     }
 
-    let command_status = sync_command.status().expect("Failed to sync packages");
+    let command_status = sync_command.status().context("Failed to sync packages")?;
 
     println!("Finished syncing packages! with status: {}", command_status);
+
+    Ok(())
 }
 
-pub fn run_update_packages(config: &DockerConfig) {
-    setup_image_for_building_packages(config);
+pub fn run_update_packages(config: &DockerConfig) -> anyhow::Result<()> {
+    setup_image_for_building_packages(config)?;
 
     let mut sync_command = create_base_aur_sync_command(config);
 
     sync_command.arg("-u");
 
-    let command_status = sync_command.status().expect("Failed to sync packages");
+    let command_status = sync_command.status().context("Failed to sync packages")?;
 
     println!("Finished syncing packages! with status: {}", command_status);
+
+    Ok(())
 }
 
-pub fn run_rebuild_all_packages(config: &DockerConfig) {
-    setup_image_for_building_packages(config);
+pub fn run_rebuild_all_packages(config: &DockerConfig) -> anyhow::Result<()> {
+    setup_image_for_building_packages(config)?;
 
     let mut sync_command = create_base_aur_sync_command(config);
     sync_command.arg("--rebuild-all");
 
     let command_status = sync_command
         .status()
-        .expect("Failed to rebuild all packages");
+        .context("Failed to rebuild all packages")?;
 
     println!(
         "Finished rebuilding all packages! with status: {}",
         command_status
     );
+
+    Ok(())
 }
 
-pub fn run_rebuild_packages(config: &DockerConfig, packages: &[&str]) {
-    setup_image_for_building_packages(config);
+pub fn run_rebuild_packages(config: &DockerConfig, packages: &[&str]) -> anyhow::Result<()> {
+    setup_image_for_building_packages(config)?;
 
     let mut sync_command = create_base_aur_sync_command(config);
-    // --rebuild-tree could also work? it will rebuild the package and all its dependencies
     sync_command.arg("--rebuild");
 
     for package in packages {
@@ -64,15 +70,16 @@ pub fn run_rebuild_packages(config: &DockerConfig, packages: &[&str]) {
 
     let command_status = sync_command
         .status()
-        .expect("Failed to rebuild packages");
+        .context("Failed to rebuild packages")?;
 
     println!(
         "Finished rebuilding packages! with status: {}",
         command_status
     );
+
+    Ok(())
 }
 
-/// Creates the base sync command, i.e. the call to `aur sync` that will be used to add, update, and rebuild packages
 fn create_base_aur_sync_command(config: &DockerConfig) -> Command {
     let mut sync_command = Command::new("sudo");
     sync_command
@@ -88,13 +95,11 @@ fn create_base_aur_sync_command(config: &DockerConfig) -> Command {
         sync_command.arg("--sign");
     }
 
-    return sync_command;
+    sync_command
 }
 
-/// Runs the configuration to prep the docker image for building packages
-/// Fetches new images, sets up pacman, fetches necessary keys, creates working directory
-fn setup_image_for_building_packages(config: &DockerConfig) {
-    update_system_packages();
+fn setup_image_for_building_packages(config: &DockerConfig) -> anyhow::Result<()> {
+    update_system_packages()?;
 
     trust_additional_keys(
         &config
@@ -103,19 +108,20 @@ fn setup_image_for_building_packages(config: &DockerConfig) {
             .map(|s| s.as_str())
             .collect::<Vec<&str>>(),
         BUILD_USER,
-    );
+    )?;
 
     if config.signing.enabled {
-        configure_package_signing(&config, BUILD_USER);
+        configure_package_signing(&config, BUILD_USER)?;
     }
 
-    configure_pacman_conf(&config);
+    configure_pacman_conf(&config)?;
 
-    // update system packages again so that it syncs up the new repository we added
-    update_system_packages();
+    update_system_packages()?;
 
-    take_ownership_of_directory(config.repository.path.as_str(), BUILD_USER, BUILD_USER);
+    take_ownership_of_directory(config.repository.path.as_str(), BUILD_USER, BUILD_USER)?;
 
-    create_directory(WORKING_DIR);
-    take_ownership_of_directory(WORKING_DIR, BUILD_USER, BUILD_USER);
+    create_directory(WORKING_DIR)?;
+    take_ownership_of_directory(WORKING_DIR, BUILD_USER, BUILD_USER)?;
+
+    Ok(())
 }

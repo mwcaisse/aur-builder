@@ -1,3 +1,4 @@
+use anyhow::Context;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -98,22 +99,18 @@ fn default_image_always_pull() -> bool {
     true
 }
 
-pub fn read_config(config_file_path: String) -> Config {
-    let config_text =
-        std::fs::read_to_string(config_file_path).expect("Failed to read config file");
+pub fn read_config(config_file_path: String) -> anyhow::Result<Config> {
+    let config_text = std::fs::read_to_string(&config_file_path)
+        .with_context(|| format!("Failed to read config file: {}", config_file_path))?;
 
     read_config_from_str(&config_text)
 }
 
-fn read_config_from_str(config_text: &str) -> Config {
-    let result = toml::from_str(&config_text);
+fn read_config_from_str(config_text: &str) -> anyhow::Result<Config> {
+    let config = toml::from_str(config_text)
+        .context("Failed to parse config file")?;
 
-    if result.is_err() {
-        let error = result.err().unwrap();
-        panic!("Failed to parse config: {error}");
-    }
-
-    result.unwrap()
+    Ok(config)
 }
 
 #[cfg(test)]
@@ -150,7 +147,7 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
 
     #[test]
     fn test_can_parse_config() {
-        let config: Config = read_config_from_str(CONFIG_EXAMPLE);
+        let config: Config = read_config_from_str(CONFIG_EXAMPLE).unwrap();
 
         assert_eq!(
             config.image.name.as_str(),
@@ -200,7 +197,7 @@ public_key_path = "etc/aur-builder/resources/tests/FD65E82A5CA3DA76E8ECA4977F498
 
     #[test]
     fn test_can_parse_minimal_config() {
-        let config: Config = read_config_from_str(MINIMAL_CONFIG);
+        let config: Config = read_config_from_str(MINIMAL_CONFIG).unwrap();
 
         assert_eq!(config.repository.name.as_str(), "mitchell-aur");
         assert_eq!(

@@ -1,7 +1,6 @@
 mod actions;
 mod config;
 mod docker;
-mod error;
 mod package_parser;
 mod pgp_utils;
 
@@ -12,9 +11,8 @@ mod test_utils;
 
 use clap::{Command, arg, command, value_parser};
 use std::path::PathBuf;
-use std::process::exit;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let default_config_path: String = "/etc/aur-builder/config.toml".to_string();
 
     let matches = command!()
@@ -82,19 +80,15 @@ fn main() {
                         .long("number-to-keep")
                 )
         )
-        // These are internal commands that are used inside the docker image
         .subcommand(
             docker::commands::get_docker_commands()
         )
         .get_matches();
 
-    // handle the docker commands and exit if they match
-    if docker::commands::handle_matching_commands(&matches) {
-        return;
+    if docker::commands::handle_matching_commands(&matches)? {
+        return Ok(());
     }
 
-    // docker will use a different config format, so don't load it up until we get here
-    // Check if a config file path was provided, otherwise use the default
     let config_path = matches
         .get_one::<PathBuf>("config")
         .map(|path| path.to_string_lossy().to_string())
@@ -102,7 +96,7 @@ fn main() {
 
     println!("Using config from: {}", config_path);
 
-    let config: config::Config = config::read_config(config_path);
+    let config: config::Config = config::read_config(config_path)?;
 
     println!("Loaded up config!");
 
@@ -118,52 +112,49 @@ fn main() {
     );
     println!("With image signing: {}", config.signing.enabled);
 
-    // we didn't match a docker command, so we'll handle the rest of the commands
     if let Some(matches) = matches.subcommand_matches("add") {
         if let Some(names) = matches.get_many::<String>("PACKAGE") {
             let package_names = names.map(String::as_str).collect::<Vec<_>>();
-            actions::run_add_packages(&config, &package_names);
+            actions::run_add_packages(&config, &package_names)?;
         } else {
-            println!("Must specify at least one package to add!");
-            exit(1);
+            anyhow::bail!("Must specify at least one package to add!");
         }
     } else if let Some(matches) = matches.subcommand_matches("remove") {
         if let Some(names) = matches.get_many::<String>("PACKAGE") {
             let package_names = names.map(String::as_str).collect::<Vec<_>>();
-            actions::run_remove_packages(&config, &package_names);
+            actions::run_remove_packages(&config, &package_names)?;
         } else {
-            println!("Must specify at least one package to remove!");
-            exit(1);
+            anyhow::bail!("Must specify at least one package to remove!");
         }
     } else if let Some(_matches) = matches.subcommand_matches("create") {
-        actions::run_create_repo(&config);
+        actions::run_create_repo(&config)?;
     } else if let Some(_matches) = matches.subcommand_matches("update") {
-        actions::run_update(&config);
+        actions::run_update(&config)?;
     } else if let Some(rebuild_matches) = matches.subcommand_matches("rebuild") {
         if let Some(names) = rebuild_matches.get_many::<String>("PACKAGE") {
             let package_names = names.map(String::as_str).collect::<Vec<_>>();
-            actions::run_rebuild(&config, &package_names);
+            actions::run_rebuild(&config, &package_names)?;
         } else {
-            actions::run_rebuild_all(&config);
+            actions::run_rebuild_all(&config)?;
         }
     } else if let Some(_matches) = matches.subcommand_matches("remove-orphaned") {
-        actions::run_remove_orphans(&config);
+        actions::run_remove_orphans(&config)?;
     } else if let Some(clean_matches) = matches.subcommand_matches("clean") {
         let to_keep = clean_matches.get_one::<u32>("NUM").copied().unwrap_or(2);
-        actions::run_clean(config, to_keep);
+        actions::run_clean(&config, to_keep)?;
     } else if let Some(_matches) = matches.subcommand_matches("list") {
-        actions::list(&config);
+        actions::list(&config)?;
     } else if let Some(search_matches) = matches.subcommand_matches("search") {
         if let Some(term) = search_matches.get_one::<String>("TERM") {
-            actions::search(&config, term);
+            actions::search(&config, term)?;
         } else {
-            println!("Must specify a search term!");
-            exit(1);
+            anyhow::bail!("Must specify a search term!");
         }
     } else if let Some(_matches) = matches.subcommand_matches("validate") {
-        actions::validate(&config);
+        actions::validate(&config)?;
     } else {
-        println!("Currently not implemented!");
-        exit(1);
+        anyhow::bail!("Currently not implemented!");
     }
+
+    Ok(())
 }

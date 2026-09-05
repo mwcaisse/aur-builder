@@ -1,8 +1,9 @@
-use crate::docker::actions::{run_add_packages, run_rebuild_all_packages, run_rebuild_packages, run_update_packages};
+use crate::docker::actions::{
+    run_add_packages, run_rebuild_all_packages, run_rebuild_packages, run_update_packages,
+};
 use crate::docker::config::read_docker_config;
 use clap::{Command, arg};
 use std::path::PathBuf;
-use std::process::exit;
 
 pub fn get_docker_commands() -> Command {
     Command::new("docker")
@@ -22,43 +23,41 @@ pub fn get_docker_commands() -> Command {
 
 pub const DEFAULT_DOCKER_CONFIG_PATH: &str = "/opt/aur-builder/config.toml";
 
-pub fn handle_matching_commands(matches: &clap::ArgMatches) -> bool {
+pub fn handle_matching_commands(matches: &clap::ArgMatches) -> anyhow::Result<bool> {
     if let Some(docker_matches) = matches.subcommand_matches("docker") {
-        // load up the docker config
         let config_path = matches
             .get_one::<PathBuf>("config")
             .map(|path| path.to_string_lossy().to_string())
             .unwrap_or(DEFAULT_DOCKER_CONFIG_PATH.to_string());
 
-        let config = read_docker_config(config_path);
+        let config = read_docker_config(config_path)?;
 
         if let Some(docker_subcommand_matches) = docker_matches.subcommand_matches("add") {
             if let Some(names) = docker_subcommand_matches.get_many::<String>("PACKAGE") {
                 let package_names = names.map(String::as_str).collect::<Vec<_>>();
-                run_add_packages(&config, &package_names);
+                run_add_packages(&config, &package_names)?;
             } else {
-                println!("Must specify at least one package to add!");
-                exit(1);
+                anyhow::bail!("Must specify at least one package to add!");
             }
-        } else if let Some(_docker_subcommand_matches) = docker_matches.subcommand_matches("update")
+        } else if let Some(_docker_subcommand_matches) =
+            docker_matches.subcommand_matches("update")
         {
-            run_update_packages(&config);
+            run_update_packages(&config)?;
         } else if let Some(docker_subcommand_matches) =
             docker_matches.subcommand_matches("rebuild")
         {
             if let Some(names) = docker_subcommand_matches.get_many::<String>("PACKAGE") {
                 let package_names = names.map(String::as_str).collect::<Vec<_>>();
-                run_rebuild_packages(&config, &package_names);
+                run_rebuild_packages(&config, &package_names)?;
             } else {
-                run_rebuild_all_packages(&config);
+                run_rebuild_all_packages(&config)?;
             }
         } else {
-            println!("Unknown docker subcommand!");
-            exit(1)
+            anyhow::bail!("Unknown docker subcommand!");
         }
 
-        return true;
+        return Ok(true);
     }
 
-    false
+    Ok(false)
 }
