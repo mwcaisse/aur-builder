@@ -48,7 +48,7 @@ RUN echo 'build ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/build
 RUN chmod 0440 /etc/sudoers.d/build
 
 # Install Aurutils dependencies
-RUN pacman -S expect diffstat jq pacutils wget devtools bash-completion perl-json-xs --noconfirm
+RUN pacman -S expect diffstat jq pacutils wget devtools bash-completion perl-json-xs trurl --noconfirm
 
 # Build and install aurutils
 WORKDIR /tmp/pkg/aurutils
